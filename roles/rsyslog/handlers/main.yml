@@ -1,0 +1,13 @@
+---
+# Handlers for rsyslog
+
+- name: "Restart rsyslog"
+  systemd:
+    name: "rsyslog"
+    state: restarted
+
+- name: "Restart systemd-journald"
+  systemd:
+    name: "systemd-journald"
+    state: restarted
+...

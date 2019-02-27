@@ -1,0 +1,68 @@
+---
+# Variables needed for this playbook 
+
+#
+# Following variables have been assigned some random
+# values. Change them to suit your needs
+#
+
+# User info
+#
+# You can generate a password hash using "openssl passwd -6 -salt <some-random-salt>"
+# Your email will receive the notifications sent by Postfix
+#
+user_name: "user"
+user_password_hash: "$6$saltgoeshere$OfAtCqYPcNjH3EOBMl4RBTJxMGLvAzjUcUoLDVPE1y5uoymUPt4.coMB/BcicrT9hlviYtKbD/CiUJIHkB.HH/"
+user_ssh_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDFl6Awy+/8FsDX2VaMK9AahgYyjj7ooJPQel3LRtv/YhzgAijXhvQmAoJhbOHhSnuPQF8Vj/8OdIpsZjCSlliZBwGyGkKvUDK0KKlI8CYWVPRfsWcjyU9B6aLmn8l3MIhjU6Y4egP2qwED7/YOMpuHYOWvKJkpHLqP6rMw/vmTi0GmgQ6GpLkiO6PdiPGdE09yy7tR1zDMbb1qY4176zONp7AxFfC0TVYanJh+zbv6Wq3ue+xa0jEKv2+pkY14zEAbvQEAL3Sruqqqexd9oqLROGz9snrMA8f+KEbKx7DLRW0j3jG2LZzWWAGRIZVaa3VQe8piBxVGtCIEcCVbY5kT user@hostname"
+user_email: "user@domain.com"
+
+# Hostname info
+#
+# Your FQDN will be hostname.domain.com
+#
+host_name: "hostname"
+host_domain: "domain.com"
+
+# Timezone
+#
+# Specify the path to the time zone file under /usr/share/zoneinfo
+#
+time_zone_file: "Asia/Kolkata"
+
+# SMTP info
+#
+# This playbook has configured Postfix to use a relay server to
+# forward the emails. You'll need to specify the hostname of the
+# relay server and the credentials to connect to it. 
+#
+smtp_relay: "smtp.gmail.com:587"
+smtp_user: "user@domain.com"
+smtp_pass: "somerandompassword"
+
+# OpenVPN info
+#
+# openvpn_port is the port at which the OpenVPN server will be
+# listening on
+# openvpn_ipv4_network and openvpn_ipv6_network are the subnets
+# that will be used by the server and the connecting clients.
+#
+# THE FOLLOWING PART IS OPTIONAL. You can delete the openvpn_ipv4_routes and
+# openvpn_ipv6_routes variables if you're not going to use them.
+#
+# If you want the VPN users to be able to connect to the networks/LANs
+# behind certain VPN clients, then add those networks to the openvpn_ipv4_network
+# and openvpn_ipv6_network lists. You need to specify those routes and the common 
+# name of the clients through which you can reach them.
+#
+openvpn_port: "1234"
+openvpn_ipv4_network: "10.10.10.0/24"
+openvpn_ipv6_network: "2001:db8:abcd:1234::/64"
+# OPTIONAL VARS
+openvpn_ipv4_routes:
+#   - ["route-network/netmask", "client-cert-common-name"]
+    - ["192.168.100.0/24", "VPN-Client-1"]
+openvpn_ipv6_routes:
+#   - ["route-network/netmask", "client-cert-common-name"]
+    - ["2001:db8:abcd:2345::/64","VPN-Client-2"]
+# END OF OPTIONAL VARS
+...

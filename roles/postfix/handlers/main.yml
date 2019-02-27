@@ -1,0 +1,14 @@
+---
+# Handlers for Postfix
+
+- name: "Generate aliases.db"
+  command: "/usr/bin/newaliases"
+
+- name: "Generate sasl_passwd.db"
+  command: "/usr/sbin/postmap /etc/postfix/sasl_passwd"
+
+- name: "Reload postfix"
+  systemd:
+    name: "postfix"
+    state: reloaded
+...

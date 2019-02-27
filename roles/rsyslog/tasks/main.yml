@@ -1,0 +1,41 @@
+---
+# Role to install and configure Rsyslog
+
+- name: "Install rsyslog"
+  apt: {name: "rsyslog", state: present}
+
+- name: "Configure rsyslog"
+  copy:
+    src: "rsyslog.conf"
+    dest: "/etc/rsyslog.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - "Restart rsyslog"
+
+- name: "Ensure journald.conf.d exists"
+  file:
+    path: "/etc/systemd/journald.conf.d"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: "Configure systemd-journald"
+  copy:
+    src: "journal-override.conf"
+    dest: "/etc/systemd/journald.conf.d/override.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - "Restart systemd-journald"
+
+- name: "Enable rsyslog"
+  systemd:
+    name: "rsyslog"
+    daemon_reload: yes
+    state: started
+    enabled: yes 
+...

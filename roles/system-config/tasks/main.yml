@@ -1,0 +1,62 @@
+---
+# System level configurations that don't really need
+# a role of their own
+
+- name: "Add user '{{ user_name }}'"
+  user:
+    name: "{{ user_name }}"
+    password: "{{ user_password_hash }}"
+    shell: "/bin/zsh"
+    comment: "Ronnie P. Thomas"
+    groups: ["sudo", "systemd-journal", "adm"]
+    state: present
+
+- name: "Setup authorized_keys for {{ user_name }}"
+  authorized_key:
+    user: "{{ user_name }}"
+    key: "{{ user_ssh_key }}"
+    state: present
+
+- name: "Ensure /etc/sudoers.d exists"
+  file:
+    path: "/etc/sudoers.d"
+    state: directory
+    owner: root
+    group: root
+
+- name: "Configure sudoers"
+  copy:
+    src: "sudoers"
+    dest: "/etc/sudoers.d/sudoers"
+    mode: 0440
+    owner: root
+    group: root
+    validate: "/usr/sbin/visudo -csf %s"
+- name: "Set the timezone"
+  file:
+    src: "/usr/share/zoneinfo/{{ time_zone_file }}"
+    dest: "/etc/localtime"
+    state: link
+    owner: root
+    group: root
+
+- name: "Setting the hostname"
+  copy:
+    content: "{{ host_name }}"
+    dest: "/etc/hostname"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Adding hostname to /etc/hosts"
+  lineinfile:
+    path: "/etc/hosts"
+    line: "127.1.1.1 {{ host_name }}.{{ host_domain }} {{ host_name }}"
+    state: present
+
+- name: "Disable SSH password authentication"
+  lineinfile:
+    path: "/etc/ssh/sshd_config"
+    regex: '^(\#|\s)*PasswordAuthentication\s*(yes|no)$'
+    line: "PasswordAuthentication no"
+...

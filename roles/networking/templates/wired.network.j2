@@ -1,0 +1,6 @@
+[Match]
+Name={{ ansible_facts['default_ipv4']['interface'] }}
+
+[Network]
+Address={{ v4_addr | ipaddr('address') }}/{{ v4_addr | ipaddr('prefix')  }}
+Gateway={{ ansible_facts['default_ipv4']['gateway'] }}

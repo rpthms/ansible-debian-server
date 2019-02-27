@@ -1,0 +1,48 @@
+#!/usr/bin/nft -f
+
+flush ruleset
+
+table inet filter {
+	chain input {
+		type filter hook input priority 0;
+
+		#Block the internet from accessing the syslog server
+		udp dport 514 iifname "{{ ansible_facts['default_ipv4']['interface'] }}" reject;
+	}
+
+	chain forward {
+		type filter hook forward priority 0;
+
+		# Allow established/related connections
+		ct state {established, related} accept
+
+		# Deny public access to IPv6 LANs
+		#
+		# We don't need to create accept rules for the VPN network
+		# since the packets accessing the LANs through the VPNs are
+		# coming through the tunnel interface and going out to the
+		# LANs via the same tunnel interface, therfore never actually
+		# going through the forward chain. There's no routing involved
+		# as far as the kernel is concerned. All the routing happens
+		# at the OpenVPN level
+		{% if openvpn_ipv6_routes is defined and openvpn_ipv6_routes is not none %}
+		{% for row in openvpn_ipv6_routes %}
+		ip6 daddr {{ row[0] }} drop;
+		{% endfor %}
+		{% endif %}
+	}
+}
+
+table ip nat {
+	chain prerouting {
+		type nat hook prerouting priority -100;
+	}
+
+	chain postrouting {
+		type nat hook postrouting priority 100;
+		ip saddr {{ '{' }} {{ openvpn_ipv4_network }}
+		{%- if openvpn_ipv4_routes is defined and openvpn_ipv4_routes is not none %}
+		{% for row in openvpn_ipv4_routes %}, {{ row[0] }}{% endfor %}
+		{% endif %}{{ ' }' }} oifname "{{ ansible_facts['default_ipv4']['interface'] }}" masquerade;
+	}
+}

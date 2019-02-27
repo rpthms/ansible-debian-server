@@ -1,0 +1,104 @@
+---
+# Role to install and configure OpenVPN
+
+# The reason I'm adding nftables in the openvpn role is because it's hard 
+# to divide the nftables config into separate files as the include directive
+# in nftables doesn't support the wildcard character in Debian Stretch because
+# of which adding the files in a ".d" directory isn't easy as there could be 
+# multiple files in there and you would have to include all of them individually.
+# So, since the nftables config is not too long right now, I'm just including it
+# in the OpenVPN role. I'll change this once Buster is released with wildcard
+# support in nftables
+
+- name: "Install openvpn and nftables"
+  apt: 
+    name: ["openvpn", "nftables"]
+    state: present
+
+- name: "Setup openvpn server config"
+  template:
+    src: "server.conf.j2"
+    dest: "/etc/openvpn/server/server.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - "Restart openvpn-server"
+
+- name: "Copy the required openvpn files"
+  copy: 
+    src: "{{ item }}"
+    dest: "/etc/openvpn/server/{{ item }}"
+    owner: root
+    group: root
+    mode: 0400
+  loop:
+    - "ca.crt"
+    - "crl.pem"
+    - "dh.pem"
+    - "server.crt"
+    - "server.key"
+    - "ta.key"
+  notify:
+    - "Restart openvpn-server"
+
+- name: "Ensuring client-config-dir exists"
+  file:
+    path: "/etc/openvpn/server/ccd"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: "Create IPv4 CCD entries"
+  lineinfile:
+    line: "iroute {{ item[0] | ipaddr('network') }} {{ item[0] | ipaddr('netmask') }}"
+    path: "/etc/openvpn/server/ccd/{{ item[1] }}"
+    create: yes
+    owner: root
+    group: root
+    mode: 0644
+  when: "openvpn_ipv4_routes is defined"
+  loop: "{{ openvpn_ipv4_routes }}"
+  notify:
+    - "Restart openvpn-server"
+
+- name: "Create IPv6 CCD entries"
+  lineinfile:
+    line: "iroute-ipv6 {{ item[0] | ipv6 }}"
+    path: "/etc/openvpn/server/ccd/{{ item[1] }}"
+    create: yes
+    owner: root
+    group: root
+    mode: 0644
+  when: "openvpn_ipv6_routes is defined"
+  loop: "{{ openvpn_ipv6_routes }}"
+  notify:
+    - "Restart openvpn-server"
+
+- name: "Copy nftables.conf"
+  template:
+    src: "nftables.conf.j2"
+    dest: "/etc/nftables.conf"
+    lstrip_blocks: yes
+    owner: root
+    group: root
+    mode: 0644
+  tags: "nftables"
+  notify:
+    - "Restart nftables"
+
+- name: "Enable openvpn server"
+  systemd:
+    name: "openvpn-server@server"
+    daemon-reload: yes
+    enabled: yes
+    state: started
+
+- name: "Enable nftables"
+  systemd:
+    name: "nftables"
+    daemon-reload: yes
+    enabled: yes
+    state: started
+...

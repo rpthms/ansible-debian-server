@@ -1,0 +1,13 @@
+---
+# Handlers for OpenVPN
+
+- name: "Restart openvpn-server"
+  systemd:
+    name: "openvpn-server@server"
+    state: restarted
+
+- name: "Restart nftables" 
+  systemd:
+    name: "nftables"
+    state: restarted
+...

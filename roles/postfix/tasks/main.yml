@@ -1,0 +1,47 @@
+---
+# Role to install and configure Postfix
+
+- name: "Install postfix and mailutils"
+  apt:
+    name: ["postfix", "libsasl2-modules", "mailutils"]
+    state: present
+
+- name: "Setup main.cf"
+  template:
+    src: "main.cf.j2"
+    dest: "/etc/postfix/main.cf"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - "Reload postfix"
+
+- name: "Setup aliases"
+  template:
+    src: "aliases.j2"
+    dest: "/etc/aliases"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - "Generate aliases.db"
+    - "Reload postfix"
+
+- name: "Create sasl_passwd"
+  copy:
+    content: "{{ smtp_relay }} {{ smtp_user }}:{{ smtp_pass }}"
+    dest: "/etc/postfix/sasl_passwd"
+    owner: root
+    group: root
+    mode: 0600
+  notify:
+    - "Generate sasl_passwd.db"
+    - "Reload postfix"
+
+- name: "Enable postfix service"
+  systemd:
+    name: postfix
+    daemon_reload: yes
+    enabled: yes
+    state: started
+...

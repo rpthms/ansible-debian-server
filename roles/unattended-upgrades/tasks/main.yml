@@ -1,0 +1,32 @@
+---
+# Role to install and configure unattended-upgrades
+
+- name: "Install unattended-upgrades"
+  apt:
+    name: ["unattended-upgrades", "apt-listchanges"]
+    state: present
+
+- name: "Configuring unattended-upgrades (50unatteded-upgrades) "
+  copy:
+    src: "50unattended-upgrades"
+    dest: "/etc/apt/apt.conf.d/50unattended-upgrades"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Configuring unattended-upgrades (20auto-upgrades) "
+  copy:
+    src: "20auto-upgrades"
+    dest: "/etc/apt/apt.conf.d/20auto-upgrades"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Configuring unattended-upgrades (listchanges.conf) "
+  copy:
+    src: "listchanges.conf"
+    dest: "/etc/apt/listchanges.conf"
+    owner: root
+    group: root
+    mode: 0644
+...

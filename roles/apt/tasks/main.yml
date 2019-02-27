@@ -1,0 +1,37 @@
+---
+# Install required packages on the host
+
+- name: "Disable all apt recommendations and suggestions"
+  copy:
+    src: "99local"
+    dest: "/etc/apt/apt.conf.d/99local"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Upgrade the system"
+  apt:
+    update_cache: yes
+    upgrade: dist
+
+- name: "Install sudo"
+  apt: {name: "sudo", state: present}
+
+- name: "Install zsh and shell completions"
+  apt:
+    name: ["zsh", "bash-completion"]
+    state: present
+
+- name: "Install man pages"
+  apt:
+    name: ["man-db", "manpages"]
+    state: present
+
+- name: "Install vim"
+  apt: {name: "vim", state: present}
+
+- name: "Install misc tools"
+  apt:
+    name: ["tree", "htop", "git", "ansible", "tcpdump"]
+    state: present
+...

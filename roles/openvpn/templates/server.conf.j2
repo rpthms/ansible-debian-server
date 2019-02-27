@@ -1,0 +1,47 @@
+port {{ openvpn_port }} 
+proto udp4
+dev tun
+ca ca.crt
+cert server.crt
+key server.key  
+dh dh.pem
+topology subnet
+client-config-dir ccd
+server {{ openvpn_ipv4_network | ipaddr('network') }} {{ openvpn_ipv4_network | ipaddr('netmask') }}
+{% if openvpn_ipv4_routes is defined and openvpn_ipv4_routes is not none %}
+{% for row in openvpn_ipv4_routes %}
+route {{ row[0] | ipaddr('network') }} {{ row[0] | ipaddr('netmask') }}
+push "route {{ row[0] | ipaddr('network') }} {{ row[0] | ipaddr('netmask') }}"
+{% endfor %}
+{% endif %}
+server-ipv6 {{ openvpn_ipv6_network }}
+{% if openvpn_ipv6_routes is defined and openvpn_ipv6_routes is not none %}
+{% for row in openvpn_ipv6_routes %}
+route-ipv6 {{ row[0] | ipv6 }}
+
+# There's a bug in OpenVPN where the internal IPv6 routes of a client
+# are also getting pushed to that client
+# Until that get's fixed we'll have to manually assign pushed routes
+# via the CCD
+# https://community.openvpn.net/openvpn/ticket/354
+#push "route-ipv6 {{ row[0] | ipv6 }}"
+{% endfor %}
+{% endif %}
+
+ifconfig-pool-persist ipp.txt
+client-to-client
+keepalive 10 120
+tls-crypt ta.key 
+cipher AES-256-GCM
+user nobody 
+group nogroup
+persist-key
+persist-tun
+status-version 3
+status openvpn-status.log
+verb 3
+explicit-exit-notify 1
+auth sha256
+remote-cert-tls client
+crl-verify crl.pem
+fast-io

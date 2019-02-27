@@ -1,0 +1,26 @@
+---
+- hosts: <hostname or IP address> 
+  remote_user: root
+  vars_files: 
+    - "vars.yml"
+  roles:
+    - role: apt
+      module_defaults:
+        apt:
+          install_recommends: no
+      tags: "apt"
+    - role: system-config
+      tags: "system-config"
+    - role: networking
+      tags: "networking"
+    - role: unattended-upgrades
+      tags: "unattended-upgrades"
+    - role: postfix
+      tags: "postfix"
+    - role: openvpn
+      tags: "openvpn"
+    - role: rsyslog
+      tags: "rsyslog"
+    - role: user-config 
+      tags: "user-config"
+...
