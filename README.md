@@ -29,7 +29,7 @@ You will need to add the following files to the OpenVPN role's files directory (
 - server.key: Your server's private key
 - ta.key: OpenVPN static key required for HMAC authentication
 
-All these files can be easily generated using [EasyRSA](https://github.com/OpenVPN/easy-rsa). Check out the Arch Wiki on [how to use EasyRSA](https://wiki.archlinux.org/index.php/Easy-RSA).
+All these files can be easily generated using [EasyRSA](https://github.com/OpenVPN/easy-rsa). Check out the Arch Wiki to learn [how to use EasyRSA](https://wiki.archlinux.org/index.php/Easy-RSA).
 
 # Instructions
 1. Make sure your SSH public key has been deployed to the root account as the playbook is using root as the `remote_user`. If you'd rather SSH into your own account and use sudo to run the playbook, then you'll have to replace `remote_user` with `become_user` in site.yml
