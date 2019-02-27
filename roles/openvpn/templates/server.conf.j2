@@ -1,9 +1,9 @@
-port {{ openvpn_port }} 
+port {{ openvpn_port }}
 proto udp4
 dev tun
 ca ca.crt
 cert server.crt
-key server.key  
+key server.key
 dh dh.pem
 topology subnet
 client-config-dir ccd
@@ -15,25 +15,32 @@ push "route {{ row[0] | ipaddr('network') }} {{ row[0] | ipaddr('netmask') }}"
 {% endfor %}
 {% endif %}
 server-ipv6 {{ openvpn_ipv6_network }}
+
+#
+# There's a bug in OpenVPN where the internal IPv6 routes of a client
+# are also getting pushed to that client
+# Until that get's fixed we'll have assign a slightly smaller IPv6 prefix
+# than the actual prefix. That way, even though the internal prefix is pushed
+# to the client, the client will acutally follow the route with the larger
+# prefix ( which would be the more specific route ). Eg:- pushing a /63
+# route wouldn't matter if the interal route is a /64.
+#
+# This workaround was suggested in the following Bug link:
+# https://community.openvpn.net/openvpn/ticket/354
+#
 {% if openvpn_ipv6_routes is defined and openvpn_ipv6_routes is not none %}
 {% for row in openvpn_ipv6_routes %}
 route-ipv6 {{ row[0] | ipv6 }}
-
-# There's a bug in OpenVPN where the internal IPv6 routes of a client
-# are also getting pushed to that client
-# Until that get's fixed we'll have to manually assign pushed routes
-# via the CCD
-# https://community.openvpn.net/openvpn/ticket/354
-#push "route-ipv6 {{ row[0] | ipv6 }}"
+push "route-ipv6 {{ row[0] | ipv6 }}"
 {% endfor %}
 {% endif %}
 
 ifconfig-pool-persist ipp.txt
 client-to-client
 keepalive 10 120
-tls-crypt ta.key 
+tls-crypt ta.key
 cipher AES-256-GCM
-user nobody 
+user nobody
 group nogroup
 persist-key
 persist-tun
