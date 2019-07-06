@@ -32,6 +32,6 @@
 
 - name: "Install misc tools"
   apt:
-    name: ["tree", "htop", "git", "ansible", "tcpdump"]
+    name: ["tree", "htop", "git", "ansible", "tcpdump", "tmux"]
     state: present
 ...
