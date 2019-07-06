@@ -65,4 +65,15 @@ openvpn_ipv6_routes:
 #   - ["route-network/netmask", "client-cert-common-name"]
     - ["2001:db8:abcd:2345::/64","VPN-Client-2"]
 # END OF OPTIONAL VARS
+
+# Networking info
+#
+# THE FOLLOWING PART IS OPTIONAL. Add static IPv6 information here.
+#
+# Since you will be SSHing into your server to run this playbook,
+# you already have your networking configuration in place. If you
+# want to add extra static IPv6 addresses to your server's interface,
+# add them to the static_ipv6 list below.
+#
+static_ipv6: ["2001:db8::1/64"]
 ...
