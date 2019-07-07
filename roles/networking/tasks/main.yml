@@ -11,10 +11,16 @@
     group: root
     mode: 0644
 
+- name: "Check if the ifupdown package exists"
+  stat:
+    path: "/lib/systemd/system/networking.service"
+  register: networking_service
+
 - name: "Disabling networking.service"
   systemd:
     name: "networking"
     enabled: no
+  when: networking_service.stat.exists == True
 
 - name: "Enabling systemd-networkd"
   systemd:
