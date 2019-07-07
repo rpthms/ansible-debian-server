@@ -16,7 +16,7 @@
 
 - name: "Copy the required openvpn files"
   copy: 
-    src: "{{ item }}"
+    src: "secret/{{ item }}"
     dest: "/etc/openvpn/server/{{ item }}"
     owner: root
     group: root
@@ -75,6 +75,24 @@
     mode: 0644
   notify:
     - "Restart nftables"
+
+- name: "Ensure openvpn-server@server.service.d exists"
+  file:
+    path: "/etc/systemd/system/openvpn-server@server.service.d"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: "Configure openvpn-server@.service"
+  copy:
+    src: "openvpn-override.conf"
+    dest: "/etc/systemd/system/openvpn-server@server.service.d/override.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - "Restart openvpn-server"
 
 - name: "Enable openvpn server"
   systemd:
