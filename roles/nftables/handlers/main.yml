@@ -1,0 +1,8 @@
+---
+# Handlers for nftables
+
+- name: "Restart nftables"
+  systemd:
+    name: "nftables"
+    state: restarted
+...

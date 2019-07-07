@@ -1,0 +1,31 @@
+---
+# Role to configure nftables
+
+- name: "Install nftables"
+  apt: {name: "nftables", state: present}
+
+- name: "Copy nftables.conf"
+  copy:
+    src: "nftables.conf"
+    dest: "/etc/nftables.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - "Restart nftables"
+
+- name: "Ensuring nftables.d exists"
+  file:
+    path: "/etc/nftables.d"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: "Enable nftables"
+  systemd:
+    name: "nftables"
+    daemon-reload: yes
+    enabled: yes
+    state: started
+...

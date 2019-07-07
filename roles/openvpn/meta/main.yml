@@ -1,0 +1,6 @@
+---
+# Role Dependencies for OpenVPN
+
+dependencies:
+  - role: "nftables"
+...

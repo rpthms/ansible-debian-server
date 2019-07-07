@@ -1,19 +1,8 @@
 ---
 # Role to install and configure OpenVPN
 
-# The reason I'm adding nftables in the openvpn role is because it's hard 
-# to divide the nftables config into separate files as the include directive
-# in nftables doesn't support the wildcard character in Debian Stretch because
-# of which adding the files in a ".d" directory isn't easy as there could be 
-# multiple files in there and you would have to include all of them individually.
-# So, since the nftables config is not too long right now, I'm just including it
-# in the OpenVPN role. I'll change this once Buster is released with wildcard
-# support in nftables
-
-- name: "Install openvpn and nftables"
-  apt: 
-    name: ["openvpn", "nftables"]
-    state: present
+- name: "Install openvpn"
+  apt: {name: "openvpn", state: present}
 
 - name: "Setup openvpn server config"
   template:
@@ -76,28 +65,20 @@
   notify:
     - "Restart openvpn-server"
 
-- name: "Copy nftables.conf"
+- name: "Copy nftables config"
   template:
     src: "nftables.conf.j2"
-    dest: "/etc/nftables.conf"
+    dest: "/etc/nftables.d/openvpn.conf"
     lstrip_blocks: yes
     owner: root
     group: root
     mode: 0644
-  tags: "nftables"
   notify:
     - "Restart nftables"
 
 - name: "Enable openvpn server"
   systemd:
     name: "openvpn-server@server"
-    daemon-reload: yes
-    enabled: yes
-    state: started
-
-- name: "Enable nftables"
-  systemd:
-    name: "nftables"
     daemon-reload: yes
     enabled: yes
     state: started

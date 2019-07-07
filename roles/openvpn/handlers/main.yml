@@ -5,9 +5,4 @@
   systemd:
     name: "openvpn-server@server"
     state: restarted
-
-- name: "Restart nftables" 
-  systemd:
-    name: "nftables"
-    state: restarted
 ...
