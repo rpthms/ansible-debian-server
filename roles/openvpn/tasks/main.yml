@@ -99,5 +99,4 @@
     name: "openvpn-server@server"
     daemon-reload: yes
     enabled: yes
-    state: started
 ...

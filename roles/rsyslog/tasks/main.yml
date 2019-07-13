@@ -47,6 +47,5 @@
   systemd:
     name: "rsyslog"
     daemon_reload: yes
-    state: started
     enabled: yes 
 ...

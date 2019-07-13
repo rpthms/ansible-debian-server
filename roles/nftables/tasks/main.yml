@@ -57,5 +57,4 @@
     name: "nftables"
     daemon-reload: yes
     enabled: yes
-    state: started
 ...
