@@ -7,6 +7,7 @@ This playbook currently includes the following roles:
 - apt: Install core packages
 - system-config: Set up core config files in /etc
 - networking: Configure systemd-networkd and enabling IP forwarding
+- nftables: Set up a basic nftables ruleset
 - unattended-upgrades: Automate security upgrades
 - postfix: Set up a send-only Postfix SMTP server to receive notifications from the server
 - openvpn: Set up the OpenVPN server and configure firewall rules
