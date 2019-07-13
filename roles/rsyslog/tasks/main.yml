@@ -32,6 +32,17 @@
   notify:
     - "Restart systemd-journald"
 
+- name: "Copy rsyslog nftables config"
+  template:
+    src: "nft-rsyslog.conf.j2"
+    dest: "/etc/nftables.d/50-rsyslog.conf"
+    lstrip_blocks: yes
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - "Restart nftables"
+
 - name: "Enable rsyslog"
   systemd:
     name: "rsyslog"

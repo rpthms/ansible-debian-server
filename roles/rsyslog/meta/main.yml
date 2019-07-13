@@ -1,5 +1,5 @@
 ---
-# Role dependencies for openvpn
+# Role dependencies for rsyslog
 
 dependencies:
   - role: "nftables"

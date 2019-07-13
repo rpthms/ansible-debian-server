@@ -1,0 +1,60 @@
+table inet filter {
+	chain input {
+		type filter hook input priority 0; policy drop;
+
+		# Allow connections to the OpenVPN server
+		udp dport {{ openvpn_port }} accept;
+
+		# Enable packets from Openvpn networks and routes
+		ip saddr {{ openvpn_ipv4_network }} accept;
+		ip6 saddr {{ openvpn_ipv6_network }} accept;
+
+		{% if openvpn_ipv4_routes is defined and openvpn_ipv4_routes is not none %}
+		{% for row in openvpn_ipv4_routes %}
+		ip saddr {{ row[0] }} accept;
+		{% endfor %}
+		{% endif %}
+		{% if openvpn_ipv6_routes is defined and openvpn_ipv6_routes is not none %}
+		{% for row in openvpn_ipv6_routes %}
+		ip6 saddr {{ row[0] }} accept;
+		{% endfor %}
+		{% endif %}
+	}
+
+	chain forward {
+		type filter hook forward priority 0; policy drop;
+
+		# Allow established/related connections
+		ct state {established, related} accept;
+
+		# Forward connections from the OpenVPN network
+		ip saddr {{ openvpn_ipv4_network }} accept;
+		ip6 saddr {{ openvpn_ipv6_network }} accept;
+
+		# Forward connections from routes behind the OpenVPN network
+		{% if openvpn_ipv4_routes is defined and openvpn_ipv4_routes is not none %}
+		{% for row in openvpn_ipv4_routes %}
+		ip saddr {{ row[0] }} accept;
+		{% endfor %}
+		{% endif %}
+		{% if openvpn_ipv6_routes is defined and openvpn_ipv6_routes is not none %}
+		{% for row in openvpn_ipv6_routes %}
+		ip6 saddr {{ row[0] }} accept;
+		{% endfor %}
+		{% endif %}
+	}
+}
+
+table ip nat {
+	chain prerouting {
+		type nat hook prerouting priority -100;
+	}
+
+	chain postrouting {
+		type nat hook postrouting priority 100;
+		ip saddr {{ '{' }} {{ openvpn_ipv4_network }}
+		{%- if openvpn_ipv4_routes is defined and openvpn_ipv4_routes is not none %}
+		{% for row in openvpn_ipv4_routes %}, {{ row[0] }}{% endfor %}
+		{% endif %}{{ ' }' }} oifname "{{ ansible_facts['default_ipv4']['interface'] }}" masquerade;
+	}
+}

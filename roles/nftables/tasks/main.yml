@@ -22,6 +22,36 @@
     group: root
     mode: 0755
 
+- name: "Copy nft-conntrack config"
+  copy:
+    src: "nft-conntrack.conf"
+    dest: "/etc/nftables.d/00-conntrack.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - "Restart nftables"
+
+- name: "Copy nft-blacklist config"
+  copy:
+    src: "nft-blacklist.conf"
+    dest: "/etc/nftables.d/10-blacklist.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - "Restart nftables"
+
+- name: "Copy nft-default config"
+  copy:
+    src: "nft-default.conf"
+    dest: "/etc/nftables.d/20-default.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - "Restart nftables"
+
 - name: "Enable nftables"
   systemd:
     name: "nftables"
