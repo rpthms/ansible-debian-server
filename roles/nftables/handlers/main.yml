@@ -5,4 +5,9 @@
   systemd:
     name: "nftables"
     state: restarted
+
+- name: "Restart nft-blacklist.timer"
+  systemd:
+    name: "nft-blacklist.timer"
+    state: restarted
 ...

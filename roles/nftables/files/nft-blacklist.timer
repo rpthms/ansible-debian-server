@@ -1,0 +1,9 @@
+[Unit]
+Description=nftables Blacklist Updater Timer
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=12h
+
+[Install]
+WantedBy=timers.target

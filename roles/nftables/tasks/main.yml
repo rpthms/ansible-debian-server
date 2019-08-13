@@ -32,15 +32,51 @@
   notify:
     - "Restart nftables"
 
-- name: "Copy nft-blacklist config"
-  copy:
-    src: "nft-blacklist.conf"
-    dest: "/etc/nftables.d/10-blacklist.conf"
-    owner: root
-    group: root
-    mode: 0644
-  notify:
-    - "Restart nftables"
+- name: "Setup nftables blacklists"
+  block:
+  - name: "Copy nft-blacklist config"
+    copy:
+      src: "nft-blacklist.conf"
+      dest: "/etc/nftables.d/10-blacklist.conf"
+      owner: root
+      group: root
+      mode: 0644
+    notify:
+      - "Restart nftables"
+
+  - name: "Copy nft-blacklist.py"
+    copy:
+      src: "nft-blacklist.py"
+      dest: "/usr/local/bin/nft-blacklist.py"
+      owner: root
+      group: root
+      mode: 0750
+
+  - name: "Copy nft-blacklist systemd service"
+    template:
+      src: "nft-blacklist.service.j2"
+      dest: "/etc/systemd/system/nft-blacklist.service"
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: "Copy nft-blacklist systemd timer"
+    copy:
+      src: "nft-blacklist.timer"
+      dest: "/etc/systemd/system/nft-blacklist.timer"
+      owner: root
+      group: root
+      mode: 0644
+    notify:
+      - "Restart nft-blacklist.timer"
+
+  - name: "Enable nft-blacklist.timer"
+    systemd:
+      name: "nft-blacklist.timer"
+      daemon-reload: yes
+      enabled: yes
+
+  when: nft_blacklist_args is defined and nft_blacklist_args
 
 - name: "Copy nft-default config"
   copy:

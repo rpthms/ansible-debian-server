@@ -1,5 +1,5 @@
 ---
-# Variables needed for this playbook 
+# Variables needed for this playbook
 
 #
 # Following variables have been assigned some random
@@ -33,7 +33,7 @@ time_zone_file: "Asia/Kolkata"
 #
 # This playbook has configured Postfix to use a relay server to
 # forward the emails. You'll need to specify the hostname of the
-# relay server and the credentials to connect to it. 
+# relay server and the credentials to connect to it.
 #
 smtp_relay: "smtp.gmail.com:587"
 smtp_user: "user@domain.com"
@@ -46,17 +46,18 @@ smtp_pass: "somerandompassword"
 # openvpn_ipv4_network and openvpn_ipv6_network are the subnets
 # that will be used by the server and the connecting clients.
 #
+openvpn_port: "1234"
+openvpn_ipv4_network: "10.10.10.0/24"
+openvpn_ipv6_network: "2001:db8:abcd:1234::/64"
+#
 # THE FOLLOWING PART IS OPTIONAL. You can delete the openvpn_ipv4_routes and
 # openvpn_ipv6_routes variables if you're not going to use them.
 #
 # If you want the VPN users to be able to connect to the networks/LANs
 # behind certain VPN clients, then add those networks to the openvpn_ipv4_network
-# and openvpn_ipv6_network lists. You need to specify those routes and the common 
+# and openvpn_ipv6_network lists. You need to specify those routes and the common
 # name of the clients through which you can reach them.
 #
-openvpn_port: "1234"
-openvpn_ipv4_network: "10.10.10.0/24"
-openvpn_ipv6_network: "2001:db8:abcd:1234::/64"
 # OPTIONAL VARS
 openvpn_ipv4_routes:
 #   - ["route-network/netmask", "client-cert-common-name"]
@@ -75,5 +76,21 @@ openvpn_ipv6_routes:
 # want to add extra static IPv6 addresses to your server's interface,
 # add them to the static_ipv6 list below.
 #
+# OPTIONAL VARS
 static_ipv6: ["2001:db8::1/64"]
+# END OF OPTIONAL VARS
+
+# nftables blacklist info
+#
+# THE FOLLOWING PART IS OPTIONAL. Add the arguments to the nft-blacklist.py
+# script that you can find at github.com/rpthms/nft-blacklist
+#
+# The arguments tell the script which table to create the blacklist sets in and
+# what countries' IP addresses should be in those sets. If you comment out this
+# variable or assign an empty string to the variable, then nft-blacklist.py won't
+# be set on the server.
+#
+# OPTIONAL VARS
+nft_blacklist_args: ""
+# END OF OPTIONAL VARS
 ...
