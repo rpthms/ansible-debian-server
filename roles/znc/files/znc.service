@@ -1,0 +1,9 @@
+[Unit]
+Description=ZNC IRC Bouncer
+
+[Service]
+User=zncd
+ExecStart=/usr/bin/znc -Df
+
+[Install]
+WantedBy=multi-user.target

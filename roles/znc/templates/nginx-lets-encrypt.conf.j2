@@ -1,0 +1,28 @@
+# Deny unknown server name's
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	server_tokens off;
+
+	return 404;
+}
+
+server {
+	listen 80;
+	listen [::]:80;
+
+	server_name {{ host_name }}.{{ host_domain }}; 
+	server_tokens off;
+
+	root /var/www/html;
+	index index.html;
+
+	location /.well-known/acme-challenge {
+		try_files $uri =404;
+	}
+
+	location / {
+		return 404;
+	}
+}

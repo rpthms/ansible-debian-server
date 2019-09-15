@@ -1,0 +1,8 @@
+---
+# Handlers for znc
+
+- name: "Restart znc"
+  systemd:
+    name: "znc"
+    state: restarted
+...

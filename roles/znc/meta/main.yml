@@ -1,0 +1,8 @@
+---
+# Role dependencies for znc
+
+dependencies:
+  - role: "nftables"
+  - role: "nginx"
+    when: znc_listener_use_ssl == 'true'
+...

@@ -1,0 +1,30 @@
+---
+# Role to install and configure nginx
+# I'm using nginx-light on Debian, since I don't need
+# most of the nginx modules available
+
+- name: "Install nginx-light"
+  apt: {name: "nginx-light", state: present}
+
+- name: "Delete the default config from nginx/sites-enabled"
+  file:
+    path: "/etc/nginx/sites-enabled/default"
+    state: absent
+
+- name: "Copy nginx nftables config"
+  copy:
+    src: "nft-nginx.conf"
+    dest: "/etc/nftables.d/50-nginx.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - "Restart nftables"
+
+- name: "Enable and start the nginx service"
+  systemd:
+    name: "nginx"
+    daemon_reload: yes
+    enabled: yes
+    state: started
+...

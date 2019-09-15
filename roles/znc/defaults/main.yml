@@ -1,0 +1,57 @@
+---
+# Default variables for the znc role
+
+znc_global_load_modules: []
+znc_max_buffer_size: '50'
+znc_motd:
+  - "Welcome to {{ host_name }}.{{ host_domain }}'s IRC Bouncer!"
+znc_ssl_ciphers: 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384'
+znc_ssl_protocols: 'TLSv1.2'
+
+znc_listener_allow_irc: 'true'
+znc_listener_allow_web: 'false'
+znc_listener_listen_on_ipv4: 'true'
+znc_listener_listen_on_ipv6: 'true'
+znc_listener_port: '6667'
+znc_listener_use_ssl: 'false'
+znc_listener_uri_prefix: '/'
+
+znc_users:
+  - name: 'default'
+    auto_clear_chan_buffer: 'false'
+    auto_clear_query_buffer: 'false'
+    chan_buffer_size: '50'
+    deny_load_mod: 'false'
+    modules: []
+    max_query_buffers: '5'
+    query_buffer_size: '50'
+
+    ## OPTIONAL! ##
+    # If you want to authenticate to your networks via SASL, you'll need to provide your ZNC password
+    # here (not the hash, the actual password), so that ansible's IRC module can talk to the ZNC server
+    # and authenticate you to your networks. That way, you can just start using ZNC directly without
+    # having to go through nickserv to authenticate.
+    password: ''
+
+    # Random password hash used as an example. Set your user's ZNC password details over here.
+    password_hash: '6dadc17061e7df097f1ea07f9955a5db17d8dfcb5162638c834b9708139fa996'
+    password_hash_algo: 'sha256'
+    password_salt: 'KJ.5.f8tpu-9xoPhvzfU'
+
+    networks:
+      - name: 'default network'
+
+        ## OPTIONAL! ##
+        # If you want to authenticate to your network via SASL, specify your network password in here
+        # Note: Your ZNC account password doesn't have to match your network specific password.
+        network_password: ''
+
+        modules: []
+        servers:
+          - 'irc.example.com +6667'
+          - 'irc.example.com +7000'
+
+        channels:
+          - '##channel1'
+          - '##channel2'
+...

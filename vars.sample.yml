@@ -9,7 +9,8 @@
 # User info
 #
 # You can generate a password hash using "openssl passwd -6 -salt <some-random-salt>"
-# Your email will receive the notifications sent by Postfix
+# Your email address will receive the notifications sent by Postfix, as well as emails
+# from LetsEncrypt regarding your SSL certificates
 #
 user_name: "user"
 user_password_hash: "$6$saltgoeshere$OfAtCqYPcNjH3EOBMl4RBTJxMGLvAzjUcUoLDVPE1y5uoymUPt4.coMB/BcicrT9hlviYtKbD/CiUJIHkB.HH/"

@@ -1,0 +1,10 @@
+[Unit]
+Description=Certbot
+Documentation=file:///usr/share/doc/python-certbot-doc/html/index.html
+Documentation=https://letsencrypt.readthedocs.io/en/latest/
+
+[Service]
+Type=oneshot
+User=zncd
+ExecStart=/usr/bin/certbot --work-dir /var/lib/znc/lets-encrypt/work --config-dir /var/lib/znc/lets-encrypt/config --logs-dir /var/lib/znc/lets-encrypt/logs -q renew
+PrivateTmp=true

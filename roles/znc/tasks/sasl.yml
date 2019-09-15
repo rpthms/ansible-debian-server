@@ -1,0 +1,31 @@
+# Tasks to authenticate ZNC users to their networks via SASL
+
+- name: "Setting SASL mechanism for {{ item.0.name }}"
+  irc:
+    server: "{{ host_name }}.{{ host_domain }}"
+    port: "{{ znc_listener_port }}"
+    nick_to: "*sasl"
+    nick: "{{ item.0.name }}"
+    passwd: "{{ item.0.name }}/{{ item.1.name }}:{{ item.0.password }}"
+    msg: "Mechanism PLAIN"
+    use_ssl: "{{ znc_listener_use_ssl }}"
+
+- name: "Setting SASL RequireAuth for {{ item.0.name }}"
+  irc:
+    server: "{{ host_name }}.{{ host_domain }}"
+    port: "{{ znc_listener_port }}"
+    nick_to: "*sasl"
+    nick: "{{ item.0.name }}"
+    passwd: "{{ item.0.name }}/{{ item.1.name }}:{{ item.0.password }}"
+    msg: "RequireAuth yes"
+    use_ssl: "{{ znc_listener_use_ssl }}"
+
+- name: "Setting SASL credentials for {{ item.0.name }}"
+  irc:
+    server: "{{ host_name }}.{{ host_domain }}"
+    port: "{{ znc_listener_port }}"
+    nick_to: "*sasl"
+    nick: "{{ item.0.name }}"
+    passwd: "{{ item.0.name }}/{{ item.1.name }}:{{ item.0.password }}"
+    msg: "Set {{ item.0.name }} {{ item.1.network_password }}"
+    use_ssl: "{{ znc_listener_use_ssl }}"
