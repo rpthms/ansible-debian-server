@@ -24,6 +24,7 @@
   template:
     src: "znc.conf.j2"
     dest: "/var/lib/znc/.znc/configs/znc.conf"
+    lstrip_blocks: yes
     owner: "zncd"
     group: "zncd" 
     mode: 0600

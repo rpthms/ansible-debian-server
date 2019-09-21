@@ -91,11 +91,9 @@ Version = 1.7.2
 		</Chan>
 
 		{% endfor %}
-
 	</Network>
 
 	{% endfor %}
-
 	<Pass password>
 		Hash = {{ user.password_hash }}
 		Method = {{ user.password_hash_algo | d('sha256') }}
