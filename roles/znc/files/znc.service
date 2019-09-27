@@ -1,8 +1,29 @@
 [Unit]
 Description=ZNC IRC Bouncer
+# znc.service doesn't need to depend on network-online.target, as
+# it doesn't crash if the network's not up. It will just keep trying
+# to connect to the IRC networks over and over until it succeeds.
 
 [Service]
 User=zncd
+CapabilityBoundingSet=
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+NoNewPrivileges=yes
+ProtectHome=yes
+ProtectSystem=full
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+PrivateDevices=yes
+PrivateTmp=yes
+RemoveIPC=yes
+RestrictNamespaces=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictRealtime=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
 ExecStart=/usr/bin/znc -Df
 
 [Install]
