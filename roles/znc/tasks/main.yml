@@ -184,4 +184,21 @@
   when: 
     - item.0.password|d("") != "" 
     - item.1.network_password|d("") != "" 
+
+- name: "Check if znc admin users are available"
+  set_fact:
+    znc_admin_users: "{{ znc_users | selectattr('is_admin', 'defined') | selectattr('is_admin', 'eq', 'true') | list }}"
+
+- name: "Get the first znc admin user"
+  set_fact:
+    znc_first_admin_user: "{{ znc_admin_users | first }}"
+  when: (znc_admin_users | length) > 0
+
+- name: "Configure the adminlog module"
+  include_tasks: "adminlog.yml"
+  when:
+    - "'adminlog' in znc_global_load_modules"
+    - znc_first_admin_user.password|d("") != ""
+    - znc_first_admin_user.networks|length > 0
+
 ...

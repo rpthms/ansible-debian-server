@@ -1,0 +1,11 @@
+# Tasks to configure the global adminlog module
+
+- name: "Send ZNC admin logs to syslog"
+  irc:
+    server: "{{ host_name }}.{{ host_domain }}"
+    port: "{{ znc_listener_port }}"
+    nick_to: "*adminlog"
+    nick: "{{ znc_first_admin_user.name }}"
+    passwd: "{{ znc_first_admin_user.name }}/{{ znc_first_admin_user.networks.0.name }}:{{ znc_first_admin_user.password }}"
+    msg: "target syslog"
+    use_ssl: "{{ znc_listener_use_ssl }}"
