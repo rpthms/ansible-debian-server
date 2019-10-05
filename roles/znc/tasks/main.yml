@@ -179,7 +179,7 @@
     state: started
 
 - name: "Configure the SASL module for users"
-  include_tasks: "sasl.yml"
+  include_tasks: "znc-modules/sasl.yml"
   loop: "{{ znc_users | subelements('networks') }}"
   when: 
     - item.0.password|d("") != "" 
@@ -195,7 +195,7 @@
   when: (znc_admin_users | length) > 0
 
 - name: "Configure the adminlog module"
-  include_tasks: "adminlog.yml"
+  include_tasks: "znc-modules/adminlog.yml"
   when:
     - "'adminlog' in znc_global_load_modules"
     - znc_first_admin_user.password|d("") != ""
