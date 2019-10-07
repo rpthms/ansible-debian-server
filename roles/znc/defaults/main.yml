@@ -18,6 +18,7 @@ znc_listener_uri_prefix: '/'
 
 znc_users:
   - name: 'default'
+    is_admin: 'false'
     auto_clear_chan_buffer: 'false'
     auto_clear_query_buffer: 'false'
     chan_buffer_size: '50'
