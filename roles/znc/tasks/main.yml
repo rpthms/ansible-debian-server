@@ -82,6 +82,7 @@
   include_tasks: "znc-modules/adminlog.yml"
   when:
     - "'adminlog' in znc_global_load_modules"
+    - znc_send_adminlog_to_syslog == "true"
     - znc_first_admin_user.password|d("") != ""
     - znc_first_admin_user.networks|length > 0
 
