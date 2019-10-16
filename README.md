@@ -13,6 +13,7 @@ This playbook currently includes the following roles:
 - openvpn: Set up the OpenVPN server and configure firewall rules
 - rsyslog: Set up a remote syslog server
 - user-config: Local user configurations. This role has beek kept empty for you to fill it with your user configurations. 
+- znc: Setup an IRC bounder via ZNC
 
 # Configure the playbook
 Before you use this playbook, you'll need to do 2 things
