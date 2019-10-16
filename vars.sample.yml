@@ -94,4 +94,56 @@ static_ipv6: ["2001:db8::1/64"]
 # OPTIONAL VARS
 nft_blacklist_args: ""
 # END OF OPTIONAL VARS
+
+# ZNC Bouncer
+#
+# The following variables set up a minimal ZNC server. Not all of the ZNC
+# variables have been listed in this file. To check all the possible variables
+# that can be used by the ZNC role, check roles/znc/defaults/main.yml. You can
+# use any of those variables in your vars.yml file.
+#
+# Special cases for the modules "sasl" and "adminlog":
+# - The sasl module helps you to automatically authenticate your user to the IRC
+#   networks using SASL. If you want Ansible to set up SASL, you'll need to provide:
+#   * The ZNC user's actual password (not the hash) in the "password" variable under
+#     the user object
+#   * The password used to authenticate your account to the IRC network in the
+#     network_password variable under the network hash.
+#
+# - The adminlog module lets you log the connections made to the ZNC server. By default,
+#   these logs will be stored in their own file in the ZNC user's home directory. If you
+#   want those logs to go to syslog instead, the following conditions needs to be met:
+#   * Set znc_send_adminlog_to_syslog to true
+#   * One of the ZNC users must have "is_admin" set to true and "password" set to their
+#     ZNC account's password (not the hash)
+#
+# Check roles/znc/defaults/main.yml to see how to specify the passwords.
+#
+znc_global_load_modules:
+  - "webadmin"
+  - "log"
+  - "lastseen"
+
+znc_listener_allow_web: 'true'
+
+znc_users:
+  # Since this user's password is not specified, the default value of 'znc-pass' will
+  # be used. To use a custom password, set the password_hash and password_salt variables
+  # for the user. Check roles/znc/defaults/main.yml.
+  - name: 'znc_user_1'
+    is_admin: 'true'
+    modules:
+      - "chansaver"
+      - "controlpanel"
+
+    networks:
+      - name: "Freenode"
+        modules:
+          - "simple_away"
+        servers:
+          - "chat.freenode.net +6697"
+          - "chat.freenode.net +7000"
+          - "chat.freenode.net +7070"
+        channels:
+          - "#freenode"
 ...

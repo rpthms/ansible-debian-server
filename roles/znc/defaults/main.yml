@@ -1,5 +1,18 @@
 ---
 # Default variables for the znc role
+#
+# All your znc variables should go in vars.yml. The following file shows all the variables
+# that you can use in vars.yml. If you don't specify certain variables, then the defaults
+# shown here would be used instead.
+#
+# MINIMUM REQUIREMENTS:
+# For the znc role to work, you need to provide AT LEAST the name of a single user account
+# and the name of a single network that will be used by that user. Here's an example:
+#
+# znc_users:
+#   - name: 'user1'
+#     networks:
+#       - name: 'network1'
 
 znc_global_load_modules: []
 znc_max_buffer_size: '50'
@@ -29,10 +42,13 @@ znc_users:
     query_buffer_size: '50'
 
     ## OPTIONAL! ##
-    # If you want to authenticate to your networks via SASL, you'll need to provide your ZNC password
-    # here (not the hash, the actual password), so that ansible's IRC module can talk to the ZNC server
-    # and authenticate you to your networks. That way, you can just start using ZNC directly without
+    # If you want Ansible to authenticate you to your IRC networks via SASL, you'll need to provide your ZNC
+    # password here (not the hash, the actual password), so that ansible's IRC module can talk to the ZNC
+    # server and authenticate you to your networks. That way, you can just start using ZNC directly without
     # having to go through nickserv to authenticate.
+    # This password can also used to configure the adminlog module to send the logs to syslog, if the user
+    # has 'is_admin' set to true and 'znc_send_adminlog_to_syslog' is set to true. You'll also need to specify
+    # the 'adminlog' module in znc_global_load_modules.
     password: ''
 
     # 'znc-pass' is used as the password if it is not set for the user in vars.yml.
@@ -40,12 +56,16 @@ znc_users:
     password_hash_algo: 'sha256'
     password_salt: 'd4c!82c4olSBFDh:lSzZ'
 
+    # The defaults shown in the networks section are only shown as an example. The values specified over here
+    # won't be used when znc.conf is being rendered from the template.
     networks:
       - name: 'default network'
 
         ## OPTIONAL! ##
         # If you want to authenticate to your network via SASL, specify your network password in here
         # Note: Your ZNC account password doesn't have to match your network specific password.
+        #
+        # Make sure you specify 'sasl' in the modules list of the network, if you want to use SASL.
         network_password: ''
 
         modules: []
