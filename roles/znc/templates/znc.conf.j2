@@ -95,9 +95,9 @@ Version = 1.7.2
 
 	{% endfor %}
 	<Pass password>
-		Hash = {{ user.password_hash }}
+		Hash = {{ user.password_hash | d('6a1570ba866ad58a3e8c51d6b881a4e26fac4894fe05ebebe4d68bcf9e05b9c3') }}
 		Method = {{ user.password_hash_algo | d('sha256') }}
-		Salt = {{ user.password_salt }}
+		Salt = {{ user.password_salt | d('d4c!82c4olSBFDh:lSzZ')  }}
 	</Pass>
 </User>
 

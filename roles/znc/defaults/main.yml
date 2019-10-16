@@ -35,10 +35,10 @@ znc_users:
     # having to go through nickserv to authenticate.
     password: ''
 
-    # Random password hash used as an example. Set your user's ZNC password details over here.
-    password_hash: '6dadc17061e7df097f1ea07f9955a5db17d8dfcb5162638c834b9708139fa996'
+    # 'znc-pass' is used as the password if it is not set for the user in vars.yml.
+    password_hash: '6a1570ba866ad58a3e8c51d6b881a4e26fac4894fe05ebebe4d68bcf9e05b9c3'
     password_hash_algo: 'sha256'
-    password_salt: 'KJ.5.f8tpu-9xoPhvzfU'
+    password_salt: 'd4c!82c4olSBFDh:lSzZ'
 
     networks:
       - name: 'default network'
