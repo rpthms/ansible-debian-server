@@ -1,18 +1,19 @@
 # ansible-server-debian
 Ansible Playbook to deploy a Debian Server
 
-This playbook was made to easily set up a VPN server within minutes. Roles can always be added and removed to change this playbook to suit your needs.
+This playbook was initially created to easily set up a VPN server within minutes. I've added a few more roles to this playbook since then. You can modify your site.yml file and select the roles which suit your needs.
 
 This playbook currently includes the following roles:
 - apt: Install core packages
 - system-config: Set up core config files in /etc
 - networking: Configure systemd-networkd and enabling IP forwarding
-- nftables: Set up a basic nftables ruleset
+- nftables: Set up a basic nftables ruleset and allow other roles to create firewall rules.
 - unattended-upgrades: Automate security upgrades
 - postfix: Set up a send-only Postfix SMTP server to receive notifications from the server
 - openvpn: Set up the OpenVPN server and configure firewall rules
 - rsyslog: Set up a remote syslog server
 - user-config: Local user configurations. This role has beek kept empty for you to fill it with your user configurations. 
+- nginx: Setup an HTTP server
 - znc: Setup an IRC bounder via ZNC
 
 # Configure the playbook
@@ -38,6 +39,7 @@ All these files can be easily generated using [EasyRSA](https://github.com/OpenV
 2. Make sure **python-netaddr** is installed on your system, as some of the roles in this playbook use the `ipaddr` filter which needs that package.
 3. Edit the inventory (`/etc/ansible/hosts` or a custom inventory file) to add your Debian server's IP or hostname
 4. Change the hosts entry in `site.yml` to your Debian server's IP or hostname 
-5. Run the playbook using `ansible-playbook site.yml`
+5. Modify the list of roles provided in `site.yml` according to your requirements.
+6. Run the playbook using `ansible-playbook site.yml`
 
 To run only a section of the configuration, make use of the --tags flag. Eg:- `ansible-playbook site.yml --tags rsyslog`
