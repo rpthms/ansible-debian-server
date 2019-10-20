@@ -1,5 +1,6 @@
 .vault_password
 ansible.cfg
+inventory
 vars.yml
 roles/openvpn/files/secret/*
 !roles/openvpn/files/secret/.gitkeep
