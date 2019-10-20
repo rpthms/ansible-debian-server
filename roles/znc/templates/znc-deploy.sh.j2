@@ -1,0 +1,27 @@
+#!/bin/bash
+
+LETSENCRYPT_DIR="/etc/letsencrypt/live"
+ZNC_SSL_DIR="/var/lib/znc/.znc/ssl"
+
+# Copy the certificates to a temp file so that we can edit the ownership and
+# permissions before ZNC tries to use the certificates
+
+# Need to do this because zncd doesn't require a reload or a restart before it
+# reads the new certificates, zncd does not cache the certificate and reads it
+# every single time there's a new client connection
+# (https://github.com/znc/znc/issues/1215). So zncd could try to read the
+# private key and find that it's not able to, because the file can only be read
+# by it's owner (which would be root, before running chown).
+
+# Private key
+cp -p "${LETSENCRYPT_DIR}/{{ host_name }}.{{ host_domain }}/privkey.pem" "${ZNC_SSL_DIR}/privkey.pem.tmp"
+
+# Public certificate
+cp -p "${LETSENCRYPT_DIR}/{{ host_name }}.{{ host_domain }}/fullchain.pem" "${ZNC_SSL_DIR}/fullchain.pem.tmp"
+
+# Change the certificate owner to zncd
+chown zncd:zncd "${ZNC_SSL_DIR}/privkey.pem.tmp" "${ZNC_SSL_DIR}/fullchain.pem.tmp"
+
+# Finally, replace the old certificates
+mv "${ZNC_SSL_DIR}/privkey.pem.tmp" "${ZNC_SSL_DIR}/privkey.pem"
+mv "${ZNC_SSL_DIR}/fullchain.pem.tmp" "${ZNC_SSL_DIR}/fullchain.pem"

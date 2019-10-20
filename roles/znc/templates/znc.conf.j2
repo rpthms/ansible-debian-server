@@ -21,8 +21,8 @@ Motd = {{ motd }}
 {% endfor %}
 {% if znc_listener_use_ssl == 'true' %}
 SSLCiphers = {{ znc_ssl_ciphers }}
-SSLCertFile = /var/lib/znc/.znc/ssl/cert.pem
-SSLKeyFile = /var/lib/znc/.znc/ssl/key.pem
+SSLCertFile = /var/lib/znc/.znc/ssl/fullchain.pem
+SSLKeyFile = /var/lib/znc/.znc/ssl/privkey.pem
 SSLDHParamFile = /var/lib/znc/.znc/ssl/dh.pem
 SSLProtocols = {{ znc_ssl_protocols }}
 {% endif %}

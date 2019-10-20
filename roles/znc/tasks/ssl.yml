@@ -1,10 +1,7 @@
 # Tasks to setup SSL for ZNC
 
 - name: "Install certbot"
-  #apt: {name: "certbot", state: present}
-  apt:
-    name: ["certbot", "python3-certbot-dns-digitalocean"]
-    state: present
+  apt: {name: "certbot", state: present}
 
 - name: "Setup nginx to allow the LetsEncrypt HTTP challenge"
   template:
@@ -31,61 +28,20 @@
     state: "reloaded"
   when: nginx_template_result is changed or nginx_link_result is changed
 
-- name: "Create the LetsEncrypt directory structure in the zncd's home directory"
-  file:
-    path: "{{ item }}"
-    state: directory
-    owner: zncd
-    group: zncd
-    mode: 0700
-  loop:
-    - "/var/lib/znc/lets-encrypt/work"
-    - "/var/lib/znc/lets-encrypt/config"
-    - "/var/lib/znc/lets-encrypt/logs"
-
-# Temporary task for testing purposes
-- name: "Copy the DigitalOcean creds"
-  copy:
-    src: "digitalocean.ini"
-    dest: "/var/lib/znc/lets-encrypt/digitalocean.ini"
-    owner: root
-    group: root
-    mode: 0644
-
 - name: "Generate the LetsEncrypt SSL certificate"
   command:
     argv:
       - "/usr/bin/certbot"
-      - "--work-dir"
-      - "/var/lib/znc/lets-encrypt/work"
-      - "--config-dir"
-      - "/var/lib/znc/lets-encrypt/config"
-      - "--logs-dir"
-      - "/var/lib/znc/lets-encrypt/logs"
       - "--non-interactive"
       - "--agree-tos"
-#      - "--email {{ user_email }}"
-      - "--register-unsafely-without-email"
+      - "--email {{ user_email }}"
       - "--domain"
       - "{{ host_name }}.{{ host_domain }}"
-#      - "--webroot"
-#      - "--webroot-path /var/www/html"
-      - "--dns-digitalocean"
-      - "--dns-digitalocean-credentials"
-      - "/var/lib/znc/lets-encrypt/digitalocean.ini"
-      - "--staging"
+      - "--webroot"
+      - "--webroot-path"
+      - "/var/www/html"
       - "certonly"
-    creates: "/var/lib/znc/lets-encrypt/config/live/{{ host_name }}.{{ host_domain }}/fullchain.pem"
-  become: yes
-  become_user: 'zncd'
-
-- name: "Setup the certbot renewal systemd service"
-  copy:
-    src: "certbot.service"
-    dest: "/etc/systemd/system/certbot.service"
-    owner: root
-    group: root
-    mode: 0644
+    creates: "/etc/letsencrypt/live/{{ host_name }}.{{ host_domain }}/fullchain.pem"
 
 - name: "Create the SSL directory in .znc"
   file:
@@ -95,6 +51,20 @@
     group: "zncd"
     mode: 0700
 
+- name: "Copy the SSL files to ZNC's SSL directory"
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    remote_src: true
+    mode: preserve
+    owner: "zncd"
+    group: "zncd"
+  loop:
+    - src: "/etc/letsencrypt/live/{{ host_name }}.{{ host_domain }}/fullchain.pem"
+      dest: "/var/lib/znc/.znc/ssl/fullchain.pem"
+    - src: "/etc/letsencrypt/live/{{ host_name }}.{{ host_domain }}/privkey.pem"
+      dest: "/var/lib/znc/.znc/ssl/privkey.pem"
+
 - name: "Generate DH params for ZNC"
   openssl_dhparam:
     path: "/var/lib/znc/.znc/ssl/dh.pem"
@@ -103,15 +73,10 @@
     group: "zncd"
     size: 2048
 
-- name: "Create symlinks in .znc to the SSL files"
-  file:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    state: link
-    owner: "zncd"
-    group: "zncd"
-  loop:
-    - src: "/var/lib/znc/lets-encrypt/config/live/{{ host_name }}.{{ host_domain }}/fullchain.pem"
-      dest: "/var/lib/znc/.znc/ssl/cert.pem"
-    - src: "/var/lib/znc/lets-encrypt/config/live/{{ host_name }}.{{ host_domain }}/privkey.pem"
-      dest: "/var/lib/znc/.znc/ssl/key.pem"
+- name: "Add znc-deploy.sh to certbot's renewal-hooks directory"
+  template:
+    src: "znc-deploy.sh.j2"
+    dest: "/etc/letsencrypt/renewal-hooks/deploy/znc-deploy.sh"
+    owner: root
+    group: root
+    mode: 0744
