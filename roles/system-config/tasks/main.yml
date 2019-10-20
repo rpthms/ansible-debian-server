@@ -32,6 +32,7 @@
     owner: root
     group: root
     validate: "/usr/sbin/visudo -csf %s"
+
 - name: "Set the timezone"
   file:
     src: "/usr/share/zoneinfo/{{ time_zone_file }}"
@@ -59,4 +60,20 @@
     path: "/etc/ssh/sshd_config"
     regex: '^(\#|\s)*PasswordAuthentication\s*(yes|no)$'
     line: "PasswordAuthentication no"
+
+- name: "Ensure system.conf.d exists"
+  file:
+    path: "/etc/systemd/system.conf.d"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: "Configure systemd-system settings"
+  copy:
+    src: "system-override.conf"
+    dest: "/etc/systemd/system.conf.d/override.conf"
+    owner: root
+    group: root
+    mode: 0644
 ...
