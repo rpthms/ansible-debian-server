@@ -24,7 +24,7 @@ RestrictRealtime=yes
 SystemCallArchitectures=native
 SystemCallFilter=@system-service
 SystemCallErrorNumber=EPERM
-ExecStart=/usr/bin/znc -Df
+ExecStart=/usr/bin/znc -f
 
 [Install]
 WantedBy=multi-user.target
