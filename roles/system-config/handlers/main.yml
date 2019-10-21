@@ -1,0 +1,8 @@
+---
+# Handlers for the system-config role
+
+- name: "Restart systemd-journald"
+  systemd:
+    name: "systemd-journald"
+    state: restarted
+...
