@@ -34,4 +34,8 @@
   apt:
     name: ["tree", "htop", "git", "ansible", "tcpdump", "tmux"]
     state: present
+
+- name: "Uninstall rsyslog"
+  apt: {name: "rsyslog", state: absent}
+  when: remove_rsyslog|d(false)
 ...

@@ -76,4 +76,22 @@
     owner: root
     group: root
     mode: 0644
+
+- name: "Ensure journald.conf.d exists"
+  file:
+    path: "/etc/systemd/journald.conf.d"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: "Configure systemd-journald"
+  copy:
+    src: "journal-override.conf"
+    dest: "/etc/systemd/journald.conf.d/override.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - "Restart systemd-journald"
 ...

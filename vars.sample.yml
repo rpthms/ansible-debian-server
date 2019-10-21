@@ -40,6 +40,17 @@ smtp_relay: "smtp.gmail.com:587"
 smtp_user: "user@domain.com"
 smtp_pass: "somerandompassword"
 
+# Rsyslog variables
+#
+# If you want to remove the rsyslog package and only use systemd-journald for
+# logging, set remove_rsyslog to true.
+# Setting remove_rsyslog to false or not defining the variable will result in:
+# - rsyslog being set as a remote syslog server, provided the rsyslog role is
+#   part of your playbook
+# - if the rsyslog role is not being used, then Ansible will not touch the
+#   rsyslog configuration files at all.
+remove_rsyslog: 'false'
+
 # OpenVPN info
 #
 # openvpn_port is the port at which the OpenVPN server will be
