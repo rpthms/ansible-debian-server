@@ -4,6 +4,20 @@
 - name: "Install openvpn"
   apt: {name: "openvpn", state: present}
 
+- name: "Enable IPv4 forwarding"
+  sysctl:
+    name: "net.ipv4.ip_forward"
+    sysctl_file: "/etc/sysctl.d/ipv4.conf"
+    value: "1"
+    state: present
+
+- name: "Enable IPv6 forwarding"
+  sysctl:
+    name: "net.ipv6.conf.all.forwarding"
+    sysctl_file: "/etc/sysctl.d/ipv6.conf"
+    value: "1"
+    state: present
+
 - name: "Setup openvpn server config"
   template:
     src: "server.conf.j2"
