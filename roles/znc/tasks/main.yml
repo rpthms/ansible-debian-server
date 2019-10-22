@@ -4,9 +4,17 @@
 - name: "Install znc"
   apt: {name: "znc", state: present}
 
+# If zncd is not a system user, then journald will store the logs from the zncd
+# user in a separate journal file (Check /var/log/journal). This file won't be
+# readable even if you're a member of the systemd-journal group. You will need
+# to be root to view the logs from the journal files of users other than your
+# own. A system user will send it's logs to the system log and not a separate
+# user journal, and therefore will be readable by members of the
+# systemd-journal group.
 - name: "Add zncd user"
   user:
     name: "zncd"
+    system: yes
     shell: "/usr/sbin/nologin"
     comment: "ZNC Daemon User"
     home: "/var/lib/znc"
