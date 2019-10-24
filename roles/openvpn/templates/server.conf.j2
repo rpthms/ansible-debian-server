@@ -1,5 +1,8 @@
 port {{ openvpn_port }}
-proto udp4
+
+# udp6 allows both IPv4 and IPv6 connections
+proto udp6
+
 dev tun
 ca ca.crt
 cert server.crt
@@ -15,6 +18,18 @@ push "route {{ row[0] | ipaddr('network') }} {{ row[0] | ipaddr('netmask') }}"
 {% endfor %}
 {% endif %}
 server-ipv6 {{ openvpn_ipv6_network }}
+
+#
+# In certain cases, when using IPv6 as the transport protocol for the tunneled
+# packets (proto udp6), the clients are not able to connect to the OpenVPN server
+# using IPv6 because the OpenVPN server responds to the clients request using a
+# different source address than the once that was used in the client's request
+# packets. To fix this, we need to set multihome as an option in the server config.
+# Don't know if this is a bug or intended behaviour.
+#
+# More info here: https://community.openvpn.net/openvpn/ticket/348
+#
+multihome
 
 #
 # There's a bug in OpenVPN where the internal IPv6 routes of a client
