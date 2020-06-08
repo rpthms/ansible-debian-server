@@ -6,15 +6,15 @@
     name: ["unattended-upgrades", "apt-listchanges"]
     state: present
 
-- name: "Configuring unattended-upgrades (50unatteded-upgrades) "
+- name: "Configuring unattended-upgrades (50unatteded-upgrades)"
   copy:
-    src: "50unattended-upgrades"
+    src: "{{ ansible_facts.distribution }}"
     dest: "/etc/apt/apt.conf.d/50unattended-upgrades"
     owner: root
     group: root
     mode: 0644
 
-- name: "Configuring unattended-upgrades (20auto-upgrades) "
+- name: "Configuring unattended-upgrades (20auto-upgrades)"
   copy:
     src: "20auto-upgrades"
     dest: "/etc/apt/apt.conf.d/20auto-upgrades"
@@ -22,7 +22,7 @@
     group: root
     mode: 0644
 
-- name: "Configuring unattended-upgrades (listchanges.conf) "
+- name: "Configuring unattended-upgrades (listchanges.conf)"
   copy:
     src: "listchanges.conf"
     dest: "/etc/apt/listchanges.conf"
