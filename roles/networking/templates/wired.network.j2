@@ -3,6 +3,7 @@ Name={{ ansible_facts['default_ipv4']['interface'] }}
 
 [Network]
 Address={{ v4_addr | ipaddr('address') }}/{{ v4_addr | ipaddr('prefix')  }}
+DNS=1.1.1.1 1.0.0.1
 Gateway={{ ansible_facts['default_ipv4']['gateway'] }}
 {% if static_ipv6 is defined and static_ipv6 is not none %}
 {% for ip in static_ipv6 -%}
