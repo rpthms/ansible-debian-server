@@ -36,6 +36,25 @@
     state: present
 
 - name: "Uninstall rsyslog"
-  apt: {name: "rsyslog", state: absent}
+  apt: {name: "rsyslog", state: absent, purge: yes, autoremove: yes}
   when: remove_rsyslog|d(false)
+
+- name: "Remove unneeded Ubuntu packages"
+  apt:
+    name:
+      - "accountsservice"
+      - "byobu"
+      - "fwupd"
+      - "haveged"
+      - "lvm2"
+      - "mdadm"
+      - "multipath-tools"
+      - "packagekit"
+      - "plymouth"
+      - "snapd"
+      - "ufw"
+    state: absent
+    purge: yes
+    autoremove: yes
+  when: ansible_facts['distribution'] == "Ubuntu"
 ...
