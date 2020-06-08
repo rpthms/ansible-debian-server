@@ -46,15 +46,11 @@ table inet filter {
 }
 
 table ip nat {
-	chain prerouting {
-		type nat hook prerouting priority -100;
-	}
-
 	chain postrouting {
 		type nat hook postrouting priority 100;
 		ip saddr {{ '{' }} {{ openvpn_ipv4_network }}
 		{%- if openvpn_ipv4_routes is defined and openvpn_ipv4_routes is not none %}
 		{% for row in openvpn_ipv4_routes %}, {{ row[0] }}{% endfor %}
-		{% endif %}{{ ' }' }} oifname "{{ ansible_facts['default_ipv4']['interface'] }}" masquerade;
+		{% endif %}{{ ' }' }} oif "{{ ansible_facts['default_ipv4']['interface'] }}" masquerade;
 	}
 }
