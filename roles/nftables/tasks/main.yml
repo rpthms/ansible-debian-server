@@ -44,9 +44,9 @@
     notify:
       - "Restart nftables"
 
-  - name: "Copy nft-blacklist.py"
-    copy:
-      src: "nft-blacklist.py"
+  - name: "Get nft-blacklist.py"
+    get_url:
+      url: "https://raw.githubusercontent.com/rpthms/nft-blacklist/master/nft-blacklist.py"
       dest: "/usr/local/bin/nft-blacklist.py"
       owner: root
       group: root
