@@ -1,0 +1,62 @@
+{#
+ # Store the WireGuard allowed and isolated IPs from all peers in a namespace variable. Could not
+ # find any other way to do this job! :(
+ #}
+{% set ns = namespace() %}
+{% set ns.allowed_ips = [] %}
+{% set ns.isolated_ips = [] %}
+{% for peer in wg_peers %}
+{% if peer.isolate|default(false) %}
+{{ ns.isolated_ips.extend(peer.wg_allowed_ips) }}
+{%- else %}
+{{ ns.allowed_ips.extend(peer.wg_allowed_ips) }}
+{%- endif %}
+{% endfor %}
+table inet filter {
+	chain input {
+		type filter hook input priority 0; policy drop;
+
+		# Allow connections to the WireGuard server
+		udp dport {{ wg_port }} accept;
+		{% if (ns.allowed_ips | ipv4) %}
+
+		# Enable packets from the allowed IPs
+		ip saddr {{ '{' }} {{ ns.allowed_ips | ipv4 | join(', ') }} {{ '}' }} accept;
+		{% endif %}
+		{% if (ns.allowed_ips | ipv6) %}
+		ip6 saddr {{ '{' }} {{ ns.allowed_ips | ipv6 | join(', ') }} {{ '}' }} accept;
+		{% endif %}
+	}
+
+	chain forward {
+		type filter hook forward priority 0; policy drop;
+
+		# Allow established/related connections
+		ct state {established, related} accept;
+		{% if (ns.allowed_ips | ipv4) %}
+
+		# Forward connections from the allowed IPs
+		ip saddr {{ '{' }} {{ ns.allowed_ips | ipv4 | join(', ') }} {{ '}' }} accept;
+		{% endif %}
+		{% if (ns.allowed_ips | ipv6) %}
+		ip6 saddr {{ '{' }} {{ ns.allowed_ips | ipv6 | join(', ') }} {{ '}' }} accept;
+		{% endif %}
+		{% if (ns.isolated_ips | ipv4) %}
+
+		# Only forward connections from isolated IPs to the internet
+		ip saddr {{ '{' }} {{ ns.isolated_ips | ipv4 | join(', ') }} {{ '}' }} oif "{{ ansible_facts['default_ipv4']['interface'] }}" accept;
+		{% endif %}
+		{% if (ns.allowed_ips | ipv6) %}
+		ip6 saddr {{ '{' }} {{ ns.isolated_ips | ipv6 | join(', ') }} {{ '}' }} oif "{{ ansible_facts['default_ipv6']['interface'] }}" accept;
+		{% endif %}
+	}
+}
+{% if ((ns.allowed_ips + ns.isolated_ips) | ipv4) %}
+
+table ip nat {
+	chain postrouting {
+		type nat hook postrouting priority 100;
+		ip saddr {{ '{' }} {{ (ns.allowed_ips + ns.isolated_ips) | ipv4 | join(', ') }} {{ '}' }} oif "{{ ansible_facts['default_ipv4']['interface'] }}" masquerade;
+	}
+}
+{% endif %}

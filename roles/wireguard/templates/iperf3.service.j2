@@ -1,0 +1,33 @@
+[Unit]
+Description=iperf3 Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/iperf3 -s -p {{ wg_iperf3_port }}
+CapabilityBoundingSet=
+DynamicUser=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+NoNewPrivileges=yes
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectSystem=strict
+PrivateDevices=yes
+PrivateTmp=true
+RemoveIPC=yes
+RestrictNamespaces=yes
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+SystemCallErrorNumber=EPERM
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,26 @@
+{#
+ # Store the WireGuard allowed IPs from all peers in a namespace variable. Could not
+ # find any other way to do this job! :(
+ #}
+{% set ns = namespace() %}
+{% set ns.allowed_ips = [] %}
+{% for peer in wg_peers %}
+{{ ns.allowed_ips.extend(peer.wg_allowed_ips) }}
+{%- endfor %}
+[Match]
+Name=wg0
+
+[Network]
+{% if wg_ipv4_address is defined and wg_ipv4_address is not none %}
+Address={{ wg_ipv4_address }}
+{% endif %}
+{% if wg_ipv6_address is defined and wg_ipv6_address is not none %}
+Address={{ wg_ipv6_address }}
+{% endif %}
+{% for ip in ns.allowed_ips %}
+{% if ip | ipaddr('prefix') != 32 and ip | ipaddr('prefix') != 128 %}
+
+[Route]
+Destination={{ ip }}
+{% endif %}
+{% endfor %}

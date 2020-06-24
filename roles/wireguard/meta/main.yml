@@ -1,0 +1,6 @@
+---
+# Role dependencies for wireguard
+
+dependencies:
+  - role: "nftables"
+...

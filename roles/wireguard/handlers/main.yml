@@ -1,0 +1,13 @@
+---
+# Handlers for WireGuard
+
+- name: "Restart systemd-networkd"
+  systemd:
+    name: "systemd-networkd"
+    state: restarted
+
+- name: "Restart iperf3"
+  systemd:
+    name: "iperf3"
+    state: restarted
+...

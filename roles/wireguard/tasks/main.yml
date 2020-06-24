@@ -1,0 +1,103 @@
+---
+# Role to install and configure WireGuard
+
+- name: "Install wireguard"
+  apt:
+    name: "wireguard-tools"
+    state: present
+
+- name: "Enable IPv4 forwarding"
+  sysctl:
+    name: "net.ipv4.ip_forward"
+    sysctl_file: "/etc/sysctl.d/ipv4.conf"
+    value: "1"
+    state: present
+
+- name: "Enable IPv6 forwarding"
+  sysctl:
+    name: "net.ipv6.conf.all.forwarding"
+    sysctl_file: "/etc/sysctl.d/ipv6.conf"
+    value: "1"
+    state: present
+
+- name: "Setup WireGuard's config files"
+  template:
+    src: "{{ item[0] }}"
+    dest: "/etc/systemd/network/{{ item[1] }}"
+    owner: root
+    group: systemd-network
+    mode: 0640
+  loop:
+    - [ "wireguard.netdev.j2", "wireguard.netdev" ]
+    - [ "wireguard.network.j2", "wireguard.network" ]
+  notify:
+    - "Restart systemd-networkd"
+
+- name: "Copy WireGuard nftables config"
+  template:
+    src: "nft-wireguard.conf.j2"
+    dest: "/etc/nftables.d/50-wireguard.conf"
+    lstrip_blocks: yes
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - "Restart nftables"
+
+- name: "Peer network between WireGuard servers"
+  block:
+    - name: "Setup WireGuard's peer server network config files"
+      template:
+        src: "{{ item[0] }}"
+        dest: "/etc/systemd/network/{{ item[1] }}"
+        owner: root
+        group: systemd-network
+        mode: 0640
+      loop:
+        - [ "wireguard-peer-server.netdev.j2", "wireguard-peer-server.netdev" ]
+        - [ "wireguard-peer-server.network.j2", "wireguard-peer-server.network" ]
+      notify:
+        - "Restart systemd-networkd"
+
+    - name: "Copy WireGuard peer server network nftables config"
+      template:
+        src: "nft-wireguard-peer-server-network.conf.j2"
+        dest: "/etc/nftables.d/55-wireguard-peer-server-network.conf"
+        lstrip_blocks: yes
+        owner: root
+        group: root
+        mode: 0644
+      notify:
+        - "Restart nftables"
+  when:
+    - wg_peer_server_ipv4_address is defined or wg_peer_server_ipv6_address is defined
+    - wg_peer_server_private_key is defined
+    - wg_peer_server_port is defined
+    - wg_peer_server_peers is defined
+
+- name: "Set up an iperf3 server for WireGuard clients"
+  block:
+    - name: "Install iperf3"
+      apt:
+        name: "iperf3"
+        state: present
+
+    - name: "Copy the iperf3 systemd service"
+      template:
+        src: "iperf3.service.j2"
+        dest: "/etc/systemd/system/iperf3.service"
+        owner: root
+        group: root
+        mode: 0644
+      notify:
+        - "Restart iperf3"
+
+    - name: "Enable the iperf3 service"
+      systemd:
+        name: "iperf3"
+        daemon-reload: yes
+        enabled: yes
+        state: started
+  when:
+    - wg_iperf3_port is defined
+...

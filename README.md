@@ -15,6 +15,7 @@ This playbook currently includes the following roles:
 - user-config: Local user configurations. This role has beek kept empty for you to fill it with your user configurations. 
 - nginx: Setup an HTTP server
 - znc: Setup an IRC bounder via ZNC
+- wireguard: Setup a WireGuard VPN server
 
 # Configure the playbook
 Before you use this playbook, you'll need to do 2 things

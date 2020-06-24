@@ -1,0 +1,15 @@
+[NetDev]
+Name=wg1
+Kind=wireguard
+
+[WireGuard]
+PrivateKey={{ wg_peer_server_private_key }}
+ListenPort={{ wg_peer_server_port }}
+{% for peer in wg_peer_server_peers %}
+
+[WireGuardPeer]
+Endpoint={{ peer.wg_peer_hostname }}:{{ peer.wg_peer_port }}
+PublicKey={{ peer.wg_peer_public_key }}
+PresharedKey={{ peer.wg_peer_preshared_key }}
+AllowedIPs={{ peer.wg_peer_allowed_ips | join(', ') }}
+{% endfor %}

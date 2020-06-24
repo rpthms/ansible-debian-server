@@ -1,0 +1,45 @@
+{#
+ # Store the WireGuard allowed IPs from all peers in a namespace variable. Could not
+ # find any other way to do this job! :(
+ #}
+{% set ns = namespace() %}
+{% set ns.allowed_ips = [] %}
+{% for peer in wg_peer_server_peers %}
+{{ ns.allowed_ips.extend(peer.wg_peer_allowed_ips) }}
+{%- endfor %}
+table inet filter {
+	chain input {
+		type filter hook input priority 0; policy drop;
+
+		# Allow connections to the WireGuard peer server
+		udp dport {{ wg_peer_server_port }} accept;
+		{% if (ns.allowed_ips | ipv4) %}
+
+		# Enable packets from the allowed IPs
+		ip saddr {{ '{' }} {{ ns.allowed_ips | ipv4 | join(', ') }} {{ '}' }} accept;
+		{% endif %}
+		{% if (ns.allowed_ips | ipv6) %}
+		ip6 saddr {{ '{' }} {{ ns.allowed_ips | ipv6 | join(', ') }} {{ '}' }} accept;
+		{% endif %}
+	}
+
+	chain forward {
+		type filter hook forward priority 0; policy drop;
+		{% if wg_ipv4_address is undefined and wg_ipv6_address is undefined %}
+		{#
+		 # Only add the conntrack rule if a regular WireGuard server has not been set up
+		 #}
+
+		# Allow established/related connections
+		ct state {established, related} accept;
+		{% endif %}
+		{% if (ns.allowed_ips | ipv4) %}
+
+		# Forward connections from the allowed IPs
+		ip saddr {{ '{' }} {{ ns.allowed_ips | ipv4 | join(', ') }} {{ '}' }} accept;
+		{% endif %}
+		{% if (ns.allowed_ips | ipv6) %}
+		ip6 saddr {{ '{' }} {{ ns.allowed_ips | ipv6 | join(', ') }} {{ '}' }} accept;
+		{% endif %}
+	}
+}
