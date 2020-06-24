@@ -157,4 +157,55 @@ znc_users:
           - "chat.freenode.net +7070"
         channels:
           - "#freenode"
+
+# WireGuard
+#
+# Set the following variable to setup a WireGuard VPN Server
+#
+# wg_ipv4_address: IPv4 address for the WireGuard interface
+# wg_ipv6_address: IPv6 address for the WireGuard interface
+# wg_private_key: The private key used by the WireGuard VPN Server
+# wg_port: The port the server should be listening on
+# wg_peers: The peers for this server. Each peer should specify the public key and a comma
+#           separated list of allowed IP addresses. A preshared key can also be optionally
+#           specified to provide an additional layer of symmetric-key cryptography. If a
+#           peer is supposed to be isolated from other peers, set "isolate" to true.
+#
+wg_ipv4_address: '10.10.100.1/24'
+wg_ipv6_address: '2001:db8:abcd:1234::1/64'
+wg_private_key: 'priv-key'
+wg_port: '2345'
+wg_peers:
+  - wg_public_key: 'pub-key1'
+    wg_preshared_key: 'preshared-key1'
+    wg_allowed_ips:
+      - '192.168.100.0/24'
+      - '10.10.100.0/24'
+  - wg_public_key: 'pub-key2'
+    wg_preshared_key: 'preshared-key2'
+    wg_allowed_ips:
+      - '192.168.200.0/24'
+    isolate: 'true'
+
+# If you want to setup an iperf3 server to test your WireGuard VPN speeds, set
+# the port which iperf3 should use in the following variable
+wg_iperf3_port: '4567'
+
+# If you have multiple servers running WireGuard and you want to connect those
+# servers with WireGuard as well, fill in the following variables. Make sure all
+# your WireGuard servers have each other as peers. The current setup will use a
+# direct path from one the source server to the destination server. It is not going
+# to route the packets via another relay WireGuard server.
+wg_peer_server_ipv4_address: '10.10.200.1/24'
+wg_peer_server_ipv6_address: '2001:db8:abcd:2345::1/64'
+wg_peer_server_private_key: 'priv-key'
+wg_peer_server_port: '2346'
+wg_peer_server_peers:
+  - wg_peer_hostname: 'host.domain.com'
+    wg_peer_port: '3456'
+    wg_peer_public_key: 'pub-key1'
+    wg_peer_preshared_key: 'preshared-key1'
+    wg_peer_allowed_ips:
+      - '192.168.200.0/24'
+      - '10.10.200.0/24'
 ...
