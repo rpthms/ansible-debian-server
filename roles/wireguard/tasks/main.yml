@@ -36,7 +36,7 @@
 - name: "Copy WireGuard nftables config"
   template:
     src: "nft-wireguard.conf.j2"
-    dest: "/etc/nftables.d/50-wireguard.conf"
+    dest: "/etc/nftables.d/75-wireguard.conf"
     lstrip_blocks: yes
     owner: root
     group: root
@@ -62,7 +62,7 @@
     - name: "Copy WireGuard peer server network nftables config"
       template:
         src: "nft-wireguard-peer-server-network.conf.j2"
-        dest: "/etc/nftables.d/55-wireguard-peer-server-network.conf"
+        dest: "/etc/nftables.d/75-wireguard-peer-server-network.conf"
         lstrip_blocks: yes
         owner: root
         group: root

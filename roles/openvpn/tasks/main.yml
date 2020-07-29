@@ -82,7 +82,7 @@
 - name: "Copy openvpn nftables config"
   template:
     src: "nft-openvpn.conf.j2"
-    dest: "/etc/nftables.d/50-openvpn.conf"
+    dest: "/etc/nftables.d/75-openvpn.conf"
     lstrip_blocks: yes
     owner: root
     group: root
