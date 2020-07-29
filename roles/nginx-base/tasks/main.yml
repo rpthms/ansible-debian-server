@@ -1,0 +1,75 @@
+---
+# Role to install nginx and set up default HTTP and HTTPS server blocks
+#
+# I'm using nginx-light on Debian, since I don't need
+# most of the nginx modules available
+
+- name: "Install nginx-light"
+  apt: {name: "nginx-light", state: present}
+
+- name: "Delete the distro's default nginx config"
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/etc/nginx/sites-enabled/default"
+    - "/etc/nginx/sites-available/default"
+
+- name: "Set up the default config for nginx"
+  template:
+    src: "default.j2"
+    dest: "/etc/nginx/sites-available/{{ host_name }}.{{ host_domain }}"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Enable the default config"
+  file:
+    src: "/etc/nginx/sites-available/{{ host_name }}.{{ host_domain }}"
+    dest: "/etc/nginx/sites-enabled/{{ host_name }}.{{ host_domain }}"
+    state: link
+    owner: root
+    group: root
+
+- name: "Create the location directory inside the default config's server-conf directory"
+  file:
+    path: "/etc/nginx/server-conf/{{ host_name }}.{{ host_domain }}/location"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: "Create the default config's server directory in /srv"
+  file:
+    path: "/srv/{{ host_name }}.{{ host_domain }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: "Add a default index.html inside the default config's server directory"
+  copy:
+    src: "index.default.html"
+    dest: "/srv/{{ host_name }}.{{ host_domain }}/index.default.html"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Copy nginx nftables config"
+  copy:
+    src: "nft-nginx.conf"
+    dest: "/etc/nftables.d/50-nginx.conf"
+    owner: root
+    group: root
+    mode: 0644
+  when: not (nginx_private | d(false) | bool)
+  notify:
+    - "Restart nftables"
+
+- name: "Enable and start the nginx service"
+  systemd:
+    name: "nginx"
+    daemon_reload: yes
+    enabled: yes
+    state: started
+...

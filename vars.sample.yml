@@ -106,6 +106,12 @@ static_ipv6: ["2001:db8::1/64"]
 nft_blacklist_args: ""
 # END OF OPTIONAL VARS
 
+# nginx
+#
+# Set 'nginx_private' to true if the nginx should only be accessible via a VPN
+#
+nginx_private: "false"
+
 # Certbot
 #
 # Create a TLS certificate for a given domain

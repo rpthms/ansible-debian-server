@@ -1,30 +1,51 @@
 ---
-# Role to install and configure nginx
-# I'm using nginx-light on Debian, since I don't need
-# most of the nginx modules available
+# Role to set up an nginx server block for a given domain
+#
+# This role won't do anything for the FQDN of the server as the nginx-base role
+# will take care of that.
 
-- name: "Install nginx-light"
-  apt: {name: "nginx-light", state: present}
+- name: "Setup an nginx server block for {{ nginx_server_name }}"
+  block:
 
-- name: "Delete the default config from nginx/sites-enabled"
-  file:
-    path: "/etc/nginx/sites-enabled/default"
-    state: absent
+  - name: "Set up the nginx server block for {{ nginx_server_name }}"
+    template:
+      src: "ssl-template.j2"
+      dest: "/etc/nginx/sites-available/{{ nginx_server_name }}"
+      owner: root
+      group: root
+      mode: 0644
 
-- name: "Copy nginx nftables config"
-  copy:
-    src: "nft-nginx.conf"
-    dest: "/etc/nftables.d/50-nginx.conf"
-    owner: root
-    group: root
-    mode: 0644
-  notify:
-    - "Restart nftables"
+  - name: "Enable {{ nginx_server_name }}'s server block"
+    file:
+      src: "/etc/nginx/sites-available/{{ nginx_server_name }}"
+      dest: "/etc/nginx/sites-enabled/{{ nginx_server_name }}"
+      state: link
+      owner: root
+      group: root
 
-- name: "Enable and start the nginx service"
-  systemd:
-    name: "nginx"
-    daemon_reload: yes
-    enabled: yes
-    state: started
+  - name: "Create the location directory inside {{ nginx_server_name }}'s server-conf directory"
+    file:
+      path: "/etc/nginx/server-conf/{{ nginx_server_name }}/location"
+      state: directory
+      owner: root
+      group: root
+      mode: 0755
+
+  - name: "Create {{ nginx_server_name }}'s server directory in /srv"
+    file:
+      path: "/srv/{{ nginx_server_name }}"
+      state: directory
+      owner: root
+      group: root
+      mode: 0755
+
+  - name: "Add a default index.html inside {{ nginx_server_name }}'s server directory"
+    copy:
+      src: "index.default.html"
+      dest: "/srv/{{ nginx_server_name }}/index.default.html"
+      owner: root
+      group: root
+      mode: 0644
+
+  when: nginx_server_name != (host_name ~ "." ~ host_domain)
 ...

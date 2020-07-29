@@ -1,0 +1,9 @@
+---
+# Role dependencies for nginx
+
+dependencies:
+  - role: "nginx-base"
+  - role: "certbot"
+    vars:
+      tls_domain: "{{ nginx_server_name }}"
+...

@@ -1,8 +1,8 @@
 ---
-# Handlers for nginx 
+# Handlers for nginx
 
 - name: "Reload nginx"
   systemd:
     name: "nginx"
-    state: reloaded 
+    state: reloaded
 ...

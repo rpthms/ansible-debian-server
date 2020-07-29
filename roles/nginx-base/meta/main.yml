@@ -1,0 +1,10 @@
+---
+# Role dependencies for nginx-base
+
+dependencies:
+  - role: "nftables"
+    when: not (nginx_private | d(false) | bool)
+  - role: "certbot"
+    vars:
+      tls_domain: "{{ host_name }}.{{ host_domain }}"
+...
