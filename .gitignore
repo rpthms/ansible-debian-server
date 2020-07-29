@@ -6,3 +6,5 @@ roles/openvpn/files/secret/*
 !roles/openvpn/files/secret/.gitkeep
 roles/user-config/*
 !roles/user-config/.gitkeep
+roles/certbot/files/*
+!roles/certbot/files/.gitkeep

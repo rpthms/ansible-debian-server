@@ -1,49 +1,5 @@
 # Tasks to setup SSL for ZNC
 
-- name: "Install certbot"
-  apt: {name: "certbot", state: present}
-
-- name: "Setup nginx to allow the LetsEncrypt HTTP challenge"
-  template:
-    src: "nginx-lets-encrypt.conf.j2"
-    dest: "/etc/nginx/sites-available/lets-encrypt.conf"
-    owner: root
-    group: root
-    mode: 0644
-  register: nginx_template_result
-
-- name: "Enable the LetsEncrypt nginx config"
-  file:
-    src: "/etc/nginx/sites-available/lets-encrypt.conf"
-    dest: "/etc/nginx/sites-enabled/lets-encrypt.conf"
-    state: link
-    owner: root
-    group: root
-  register: nginx_link_result
-
-# Reload only if the nginx config changes
-- name: "Reload nginx before starting the LetsEncrypt HTTP challenge"
-  systemd:
-    name: "nginx"
-    state: "reloaded"
-  when: nginx_template_result is changed or nginx_link_result is changed
-
-- name: "Generate the LetsEncrypt SSL certificate"
-  command:
-    argv:
-      - "/usr/bin/certbot"
-      - "--non-interactive"
-      - "--agree-tos"
-      - "--email"
-      - "{{ user_email }}"
-      - "--domain"
-      - "{{ host_name }}.{{ host_domain }}"
-      - "--webroot"
-      - "--webroot-path"
-      - "/var/www/html"
-      - "certonly"
-    creates: "/etc/letsencrypt/live/{{ host_name }}.{{ host_domain }}/fullchain.pem"
-
 - name: "Create the SSL directory in .znc"
   file:
     path: "/var/lib/znc/.znc/ssl"

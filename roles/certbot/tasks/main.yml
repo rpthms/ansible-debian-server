@@ -1,0 +1,34 @@
+---
+# Tasks to obtain a TLS certificate from Let's Encrypt
+
+- name: "Install Certbot and the DNS plugin"
+  apt:
+    name: ["certbot", "{{ certbot_dns_plugin.package }}"]
+    state: present
+
+- name: "Copy the DNS plugin credentials"
+  copy:
+    src: "dns-creds"
+    dest: "/etc/letsencrypt/.dns-creds"
+    owner: root
+    group: root
+    mode: 0400
+
+- name: "Generate the Let's Encrypt TLS certificate"
+  command:
+    cmd: >-
+      /usr/bin/certbot
+      certonly
+      --non-interactive
+      --agree-tos
+      --email
+      {{ user_email }}
+      --domain
+      {{ tls_domain }}
+      {{ certbot_dns_plugin.arg_name }}
+      {{ certbot_dns_propagation.arg_name }}
+      {{ certbot_dns_propagation.value }}
+      {{ certbot_dns_credentials.arg_name }}
+      /etc/letsencrypt/.dns-creds
+    creates: "/etc/letsencrypt/live/{{ tls_domain }}/fullchain.pem"
+...

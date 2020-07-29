@@ -106,6 +106,41 @@ static_ipv6: ["2001:db8::1/64"]
 nft_blacklist_args: ""
 # END OF OPTIONAL VARS
 
+# Certbot
+#
+# Create a TLS certificate for a given domain
+#
+# This role only supports the DNS-01 method of obtaining TLS certificates. You need
+# to specify certain arguments that tell certbot which DNS plugin it needs to use and
+# how to use it
+#
+# dns_plugin: Which DNS plugin to use for the domain verification process. The "arg_name"
+#             key must be one of the DNS plugin arguments that certbot accepts. The DNS
+#             plugin that you choose must also be installed on the remote system, so you'll
+#             also need to provide the name of the package containing your chosen DNS
+#             plugin in the "package" key.
+#
+# dns_propagation: How long Let's Encrypt must wait to verify the TXT record set by
+#                  certbot. The "arg_name" key of this hash must be the name of the
+#                  "propagation-seconds" certbot argument associated with the DNS plugin
+#                  in use. Specify the number of seconds to wait in the "value" key.
+#
+# dns_credentials: Specify the credentials certbot will use to create and destroy the
+#                  TXT record. The "arg_name" key of this hash mush be the name of the
+#                  "credentials" certbot argument associated with the DNS plugin in
+#                  use. Store the credentials in "certbot/files/dns-creds".
+#                  Each DNS plugin will have different values specified in the credential
+#                  files. Check the documentation of your DNS plugin on Certbot's website.
+#
+certbot_dns_plugin:
+  arg_name: "--dns-cloudflare"
+  package: "python3-certbot-dns-cloudflare"
+certbot_dns_propagation:
+  arg_name: "--dns-cloudflare-propagation-seconds"
+  value: "60"
+certbot_dns_credentials:
+  arg_name: "--dns-cloudflare-credentials"
+
 # ZNC Bouncer
 #
 # The following variables set up a minimal ZNC server. Not all of the ZNC

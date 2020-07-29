@@ -3,6 +3,8 @@
 
 dependencies:
   - role: "nftables"
-  - role: "nginx"
-    when: znc_listener_use_ssl == 'true'
+  - role: "certbot"
+    vars:
+      tls_domain: "{{ host_name }}.{{ host_domain }}"
+    when: znc_listener_use_ssl == "true"
 ...
