@@ -30,8 +30,7 @@
   loop:
     - [ "wireguard.netdev.j2", "wireguard.netdev" ]
     - [ "wireguard.network.j2", "wireguard.network" ]
-  notify:
-    - "Restart systemd-networkd"
+  register: wireguard_config
 
 - name: "Copy WireGuard nftables config"
   template:
@@ -56,8 +55,7 @@
       loop:
         - [ "wireguard-peer-server.netdev.j2", "wireguard-peer-server.netdev" ]
         - [ "wireguard-peer-server.network.j2", "wireguard-peer-server.network" ]
-      notify:
-        - "Restart systemd-networkd"
+      register: wireguard_peer_config
 
     - name: "Copy WireGuard peer server network nftables config"
       template:
@@ -100,4 +98,10 @@
         state: started
   when:
     - wg_iperf3_port is defined
+
+- name: "Restart systemd-networkd"
+  systemd:
+    name: "systemd-networkd"
+    state: restarted
+  when: wireguard_config is changed or wireguard_peer_config is changed
 ...
