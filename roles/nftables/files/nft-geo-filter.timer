@@ -1,5 +1,5 @@
 [Unit]
-Description=nftables Blacklist Updater Timer
+Description=nftables Country Filter Timer
 
 [Timer]
 OnBootSec=5min

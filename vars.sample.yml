@@ -92,18 +92,17 @@ openvpn_ipv6_routes:
 static_ipv6: ["2001:db8::1/64"]
 # END OF OPTIONAL VARS
 
-# nftables blacklist info
+# nft-geo-filter info
 #
-# THE FOLLOWING PART IS OPTIONAL. Add the arguments to the nft-blacklist.py
-# script that you can find at github.com/rpthms/nft-blacklist
+# THE FOLLOWING PART IS OPTIONAL. Add the arguments to the nft-geo-filter
+# script that you can find at github.com/rpthms/nft-geo-filter
 #
-# The arguments tell the script which table to create the blacklist sets in and
-# what countries' IP addresses should be in those sets. If you comment out this
-# variable or assign an empty string to the variable, then nft-blacklist.py won't
-# be set on the server.
+# The arguments tell the script which countries need to be blocked from accessing
+# a server. If you comment out this variable or assign an empty string to the
+# variable, then nft-geo-filter won't be set on the server.
 #
 # OPTIONAL VARS
-nft_blacklist_args: ""
+nft_geo_filter_args: ""
 # END OF OPTIONAL VARS
 
 # nginx

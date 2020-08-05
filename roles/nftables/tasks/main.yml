@@ -32,51 +32,42 @@
   notify:
     - "Restart nftables"
 
-- name: "Setup nftables blacklists"
+- name: "Setup nft-geo-filter"
   block:
-  - name: "Copy nft-blacklist config"
-    copy:
-      src: "nft-blacklist.conf"
-      dest: "/etc/nftables.d/10-blacklist.conf"
-      owner: root
-      group: root
-      mode: 0644
-    notify:
-      - "Restart nftables"
 
-  - name: "Get nft-blacklist.py"
+  - name: "Get nft-geo-filter"
     get_url:
-      url: "https://raw.githubusercontent.com/rpthms/nft-blacklist/master/nft-blacklist.py"
-      dest: "/usr/local/bin/nft-blacklist.py"
+      url: "https://raw.githubusercontent.com/rpthms/nft-geo-filter/master/nft-geo-filter"
+      dest: "/usr/local/bin/nft-geo-filter"
       owner: root
       group: root
       mode: 0750
 
-  - name: "Copy nft-blacklist systemd service"
+  - name: "Copy the nft-geo-filter systemd service"
     template:
-      src: "nft-blacklist.service.j2"
-      dest: "/etc/systemd/system/nft-blacklist.service"
+      src: "nft-geo-filter.service.j2"
+      dest: "/etc/systemd/system/nft-geo-filter.service"
       owner: root
       group: root
       mode: 0644
 
-  - name: "Copy nft-blacklist systemd timer"
+  - name: "Copy nft-geo-filter systemd timer"
     copy:
-      src: "nft-blacklist.timer"
-      dest: "/etc/systemd/system/nft-blacklist.timer"
+      src: "nft-geo-filter.timer"
+      dest: "/etc/systemd/system/nft-geo-filter.timer"
       owner: root
       group: root
       mode: 0644
     notify:
-      - "Restart nft-blacklist.timer"
+      - "Restart nft-geo-filter.timer"
 
-  - name: "Enable nft-blacklist.timer"
+  - name: "Enable nft-geo-filter.timer"
     systemd:
-      name: "nft-blacklist.timer"
+      name: "nft-geo-filter.timer"
       daemon-reload: yes
       enabled: yes
 
-  when: nft_blacklist_args is defined and nft_blacklist_args
+  when: nft_geo_filter_args is defined and nft_geo_filter_args
 
 - name: "Copy nft-default config"
   copy:

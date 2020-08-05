@@ -1,0 +1,6 @@
+[Unit]
+Description=nftables Country Filter
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/nft-geo-filter {{ nft_geo_filter_args }}

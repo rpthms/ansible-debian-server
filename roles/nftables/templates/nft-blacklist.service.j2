@@ -1,6 +1,0 @@
-[Unit]
-Description=nftables Blacklist Updater
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/nft-blacklist.py {{ nft_blacklist_args }}

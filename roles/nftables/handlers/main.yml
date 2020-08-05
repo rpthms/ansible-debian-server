@@ -6,8 +6,8 @@
     name: "nftables"
     state: restarted
 
-- name: "Restart nft-blacklist.timer"
+- name: "Restart nft-geo-filter.timer"
   systemd:
-    name: "nft-blacklist.timer"
+    name: "nft-geo-filter.timer"
     state: restarted
 ...
