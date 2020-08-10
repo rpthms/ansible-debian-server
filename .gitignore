@@ -10,3 +10,5 @@ roles/certbot/files/*
 !roles/certbot/files/.gitkeep
 roles/monitor/files/exec-scripts/*
 !roles/monitor/files/exec-scripts/.gitkeep
+roles/grafana/files/grafana-dashboards/*
+!roles/grafana/files/grafana-dashboards/.gitkeep

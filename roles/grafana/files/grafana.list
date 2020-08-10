@@ -1,0 +1,2 @@
+# Grafana repository
+deb [signed-by=/usr/share/keyrings/grafana.gpg] https://packages.grafana.com/oss/deb stable main

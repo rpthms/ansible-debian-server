@@ -1,0 +1,38 @@
+# config file version
+apiVersion: 1
+
+# list of datasources to insert/update depending
+# what's available in the database
+datasources:
+  # <string, required> name of the datasource. Required
+  - name: {{ grafana.datasource.name }}
+    # <string, required> datasource type. Required
+    type: {{ grafana.datasource.type }}
+    # <string, required> access mode. proxy or direct (Server or Browser in the UI). Required
+    access: proxy
+    # <int> org id. will default to orgId 1 if not specified
+    orgId: 1
+    # <string> url
+    url: {{ grafana.datasource.url }}
+    # <string> database name, if used
+    database: {{ grafana.datasource.database_name }}
+    # <bool> enable/disable basic auth
+    basicAuth: {{ 'true' if grafana.datasource.basic_auth is defined else 'false' }}
+    # <string> basic auth username
+    basicAuthUser: {{ grafana.datasource.basic_auth.username if grafana.datasource.basic_auth is defined }}
+    # <bool> mark as default datasource. Max one per org
+    isDefault: true
+    {% if grafana.datasource.json_data is defined %}
+    # <map> fields that will be converted to json and stored in jsonData
+    jsonData:
+    {% for item in (grafana.datasource.json_data | dict2items) %}
+      {{ item.key }}: {{ item.value }}
+    {% endfor %}
+    {% endif %}
+    # <string> json object of data that will be encrypted.
+    secureJsonData:
+      # <string> basic auth password
+      basicAuthPassword: {{ grafana.datasource.basic_auth.password if grafana.datasource.basic_auth is defined }}
+    version: 1
+    # <bool> allow users to edit datasources from the UI.
+    editable: false

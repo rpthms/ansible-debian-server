@@ -1,0 +1,9 @@
+---
+# Role dependencies for Grafana
+
+dependencies:
+  - role: "nginx"
+    vars:
+      nginx_server_name: "{{ grafana.url | urlsplit('hostname') }}"
+    when: grafana.use_tls | d(false) | bool
+...

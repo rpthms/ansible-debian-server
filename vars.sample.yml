@@ -572,4 +572,49 @@ monitor:
           - ["crit_expiry_days","int",10]
       - template: "failed_systemd_unit"
         vars: ~
+
+#
+# Grafana
+#
+# Set up a Grafana server for visualizing the monitoring data
+#
+# This role only supports adding one data source to Grafana. Enter the details of
+# the data source in the grafana.datasource hash and any data source specific keys
+# will go in the grafana.datasource.json_data hash
+#
+# To add a dashboard, you'll need to get an exported JSON version of the dashboard
+# from Grafana and put it in the grafana/files/grafana-dashboards directory. The 'uid'
+# and the 'title' of the dashboard will be used as is, so if you want to change them,
+# do so in the dashboard's JSON file itself
+#
+# Users created by Grafana will have the 'Viewer' role by default, which means that
+# they won't be able to make any changes to the dashboard. To allow a user to  make
+# changes in the dashboard, set the 'is_editor' key to true.
+#
+# NOTE: The "secret_key" is used to encrypt the passwords stored by Grafana to access
+#       the data sources. You have to set it to a random string before running this
+#       role.
+#
+grafana:
+  use_tls: "true"
+  url: "http://grafana.domain.com:3000"
+  secret_key: "Qsu9XG08ZjQwaXgvwaYw"
+  admin_username: "admin"
+  admin_password: "password"
+  users:
+    - username: "user1"
+      password: "pass1"
+      is_editor: "true"
+    - username: "user2"
+      password: "pass2"
+  datasource:
+    name: "My DB"
+    type: "influxdb"
+    database_name: "telegraf"
+    url: "http://influxdb.domain.com:8086"
+    basic_auth:
+      username: "db-user"
+      password: "db-pass"
+    json_data:
+      httpMode: "POST"
 ...

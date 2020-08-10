@@ -1,0 +1,62 @@
+---
+# Create users in Grafana
+
+- name: "Check if the user already exists in Grafana's database"
+  uri:
+    url: "{{ grafana.url ~ '/api/users/lookup?loginOrEmail=' ~ item.username }}"
+    url_username: "{{ grafana.admin_username }}"
+    url_password: "{{ grafana.admin_password }}"
+    force_basic_auth: true
+    status_code:
+      - 200
+      - 404
+  register: grafana_user_status
+
+- name: "Create the Grafana user"
+  block:
+
+  - name: "Add the Grafana user to Grafana's database"
+    uri:
+      url: "{{ grafana.url ~ '/api/admin/users' }}"
+      url_username: "{{ grafana.admin_username }}"
+      url_password: "{{ grafana.admin_password }}"
+      method: POST
+      force_basic_auth: true
+      body_format: json
+      body: >-
+        {
+          "name": "{{ item.username }}",
+          "login": "{{ item.username }}",
+          "password": "{{ item.password }}"
+        }
+    no_log: yes
+    register: grafana_user_result
+
+  - name: "Set the Grafana user's organization role"
+    uri:
+      url: "{{ grafana.url ~ '/api/org/users/' ~ grafana_user_result.json.id }}"
+      url_username: "{{ grafana.admin_username }}"
+      url_password: "{{ grafana.admin_password }}"
+      method: PATCH
+      force_basic_auth: true
+      body_format: json
+      body: >-
+        {
+          "role": "{{ 'Editor' if (item.is_editor | d(false) | bool) else 'Viewer' }}"
+        }
+
+  when: grafana_user_status.status == 404
+
+- name: "Patch the Grafana user's organization role"
+  uri:
+    url: "{{ grafana.url ~ '/api/org/users/' ~ grafana_user_status.json.id }}"
+    url_username: "{{ grafana.admin_username }}"
+    url_password: "{{ grafana.admin_password }}"
+    method: PATCH
+    force_basic_auth: true
+    body_format: json
+    body: >-
+      {
+        "role": "{{ 'Editor' if (item.is_editor | d(false) | bool) else 'Viewer' }}"
+      }
+  when: grafana_user_status.status == 200

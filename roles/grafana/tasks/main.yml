@@ -1,0 +1,154 @@
+---
+# Role to install and configure a Grafana server
+
+- name: "Add the Grafana repo"
+  copy:
+    src: "grafana.list"
+    dest: "/etc/apt/sources.list.d/grafana.list"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Add Grafana's GPG key to apt's keyring"
+  copy:
+    src: "grafana.gpg"
+    dest: "/usr/share/keyrings/grafana.gpg"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Install Grafana"
+  apt:
+    name: "grafana"
+    update_cache: yes
+    state: present
+
+- name: "Copy Grafana's config file"
+  template:
+    src: "grafana.ini.j2"
+    dest: "/etc/grafana/grafana.ini"
+    owner: root
+    group: grafana
+    mode: 0640
+  register: grafana_conf_result
+
+- name: "Setup TLS for Grafana"
+  block:
+
+    - name: "Add an nginx location block to proxy_pass to Grafana"
+      copy:
+        src: "nginx-grafana.conf"
+        dest: "/etc/nginx/server-conf/{{ grafana.url | urlsplit('hostname') }}/location/grafana.conf"
+        owner: root
+        group: root
+        mode: 0644
+      register: nginx_grafana_config
+
+    - name: "Reload nginx if the nginx Grafana config has changed"
+      systemd:
+        name: "nginx"
+        state: "reloaded"
+      when: nginx_grafana_config is changed
+
+  when: grafana.use_tls | d(false) | bool
+
+- name: "Enable and start the Grafana server"
+  systemd:
+    name: "grafana-server"
+    daemon_reload: yes
+    enabled: yes
+    state: started
+  register: grafana_first_start
+
+- name: "Restart the Grafana server if the config file has changed"
+  systemd:
+    name: "grafana-server"
+    state: restarted
+  when:
+    - grafana_conf_result is changed
+    - grafana_first_start is not changed
+
+- name: "Change the Grafana admin password"
+  uri:
+    url: "{{ grafana.url ~ '/api/user/password' }}"
+    url_username: "{{ grafana.admin_username }}"
+    url_password: "admin"
+    method: PUT
+    force_basic_auth: true
+    status_code:
+      - 200
+      - 401
+    body_format: json
+    body: >-
+      {
+        "oldPassword": "admin",
+        "newPassword": "{{ grafana.admin_password }}"
+      }
+  no_log: true
+
+- name: "Create Grafana users"
+  include_tasks:
+    file: "create_users.yml"
+  loop: "{{ grafana.users }}"
+
+- name: "Create the Grafana provisioning directories"
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "root"
+    group: "grafana"
+    mode: 0755
+  loop:
+    - "/etc/grafana/provisioning/datasources"
+    - "/etc/grafana/provisioning/dashboards"
+
+- name: "Create the Grafana dashboard directory"
+  file:
+    path: "/etc/grafana/dashboards"
+    state: directory
+    owner: "root"
+    group: "grafana"
+    mode: 0755
+
+- name: "Copy the dashboard JSON files"
+  copy:
+    src: "grafana-dashboards/"
+    dest: "/etc/grafana/dashboards"
+    owner: "root"
+    group: "grafana"
+    mode: 0640
+  changed_when: false
+
+- name: "Get a list of the dashboard JSON files"
+  find:
+    paths: "/etc/grafana/dashboards"
+  register: "dashboard_list"
+
+- name: "Use the specified data source in the dashboard JSON files"
+  replace:
+    path: "{{ item.path }}"
+    regexp: '"(?:\${)?DS_[A-Z0-9_-]+(?:})?"'
+    replace: '"{{ grafana.datasource.name }}"'
+  changed_when: false
+  loop: "{{ dashboard_list.files }}"
+
+- name: "Add the datasource provisioning config file"
+  template:
+    src: "datasource.yaml.j2"
+    dest: "/etc/grafana/provisioning/datasources/datasource.yaml"
+    owner: "root"
+    group: "grafana"
+    mode: 0640
+  notify:
+    - "Restart Grafana"
+
+- name: "Add the dashboard provisioning config file"
+  copy:
+    src: "dashboard.yaml"
+    dest: "/etc/grafana/provisioning/dashboards/dashboard.yaml"
+    owner: "root"
+    group: "grafana"
+    mode: 0640
+  notify:
+    - "Restart Grafana"
+...
