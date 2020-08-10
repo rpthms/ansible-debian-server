@@ -1,0 +1,51 @@
+// Alert when a service is down
+
+dbrp "telegraf"."autogen"
+
+// Host name
+var host string
+// Name of the service to check
+var service string
+
+{% raw -%}
+// Dataframe
+var data = stream
+    |from()
+        .measurement('systemd_units')
+        .where(lambda: "host" == host)
+        .where(lambda: "name" == service)
+    // Adding the sample node to prevent unordered data points from generating false alarms
+    |sample(3)
+    |eval(lambda: "active_code")
+        .as('stat')
+{% endraw %}
+{% if kapacitor.influxdb.url is defined and kapacitor.influxdb.username is defined and kapacitor.influxdb.password is defined %}
+
+// Write the service status to InfluxDB
+var output = data
+    |influxDBOut()
+        .database('telegraf')
+        .retentionPolicy('kapacitor_alert_rp')
+        .measurement('alert_service_status')
+        .precision('s')
+        .flushInterval(30s)
+{% endif %}
+
+{% raw -%}
+// Alert
+var alert = data
+    |alert()
+        .id(host + '/service_status/' + service)
+        .message(service + '\'s Status on ' + host + ': {{ .Level }}')
+        .details('<h1>' + host + '''</h1>
+<p>Service Name: <strong>{{ index .Tags "name" }}</strong></p>
+<p>Service Status: <strong>{{ index .Tags "active" }}</strong></p>
+<p>Alert Level: <strong>{{ .Level }}</strong></p>
+<p>Alert Time: <strong>{{ .Time }}</strong></p>
+<p>Alert Duration: <strong>{{ .Duration }}</strong></p>''')
+        .crit(lambda: "stat" == 2 OR "stat" == 3)
+        .critReset(lambda: "stat" == 0)
+        .category(host + '_alerts')
+        .stateChangesOnly(30m)
+        .topic('send-alerts')
+{% endraw %}

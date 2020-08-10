@@ -1,0 +1,43 @@
+// Alert when TLS certs are about to expire
+
+dbrp "telegraf"."autogen"
+
+// Host name
+var host string
+// Info threshold of days left for TLS cert to expire
+var info_expiry_days = {{ template.default_vars.info_expiry_days }}
+// Warning threshold of days left for TLS cert to expire
+var warn_expiry_days = {{ template.default_vars.warn_expiry_days }}
+// Critical threshold of days left for TLS cert to expire
+var crit_expiry_days = {{ template.default_vars.crit_expiry_days }}
+
+{% raw -%}
+// Dataframe
+var data = stream
+    |from()
+        .measurement('x509_cert')
+        .where(lambda: "host" == host)
+        .groupBy('common_name')
+    // Adding the sample node to prevent unordered data points from generating false alarms
+    |sample(3)
+    |eval(lambda: "expiry" / 86400)
+        .as('stat')
+
+// Alert
+var alert = data
+    |alert()
+        .id(host + '/tls_expiry/{{ index .Tags "common_name" }}')
+        .message(host + '\'s TLS Cert Expiry - {{ index .Tags "common_name" }}: {{ .Level }}')
+        .details('<h1>' + host + '''</h1>
+<p>Cert Common Name: <strong>{{ index .Tags "common_name" }}</strong></p>
+<p>Days left to expire: <strong>{{ index .Fields "stat" }} days</strong></p>
+<p>Alert Level: <strong>{{ .Level }}</strong></p>
+<p>Alert Time: <strong>{{ .Time }}</strong></p>
+<p>Alert Duration: <strong>{{ .Duration }}</strong></p>''')
+        .info(lambda: "stat" < info_expiry_days)
+        .warn(lambda: "stat" < warn_expiry_days)
+        .crit(lambda: "stat" < crit_expiry_days)
+        .category(host + '_alerts')
+        .stateChangesOnly(1d)
+        .topic('send-alerts')
+{% endraw %}

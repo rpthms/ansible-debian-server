@@ -310,4 +310,109 @@ influxdb:
   grafana_password: 'password'
   tls_domain: 'influxdb.domain.com'
   kapacitor_subscription_url: 'http://kapacitor.domain.com:9092'
+
+#
+# Kapacitor
+#
+# Set up a Kapacitor server for data processing and alerting
+#
+# hostname: The hostname at which the Kapacitor server will be accessible. Make sure
+#           that this hostname is exactly the same as the hostname provided in the
+#           'kapacitor_subscription_url' variable of the influxdb role, as InfluxDB will
+#           forward all it's data to a Kapacitor server with the given hostname.
+#
+# smtp.from_email: The "from" email which will be used for the alerts that you'll receive
+#
+# influxdb: Certain Kapacitor tasks will need access to the InfluxDB server, so that they
+#           can use the InfluxDBOut Node and write back data points into the InfluxDB
+#           server. Provide the URL of the InfluxDB server in influxdb.url and the InfluxDB
+#           credentials in influxdb.username and influxdb.password.
+#
+# Each template allows you to set default variables that will be used for the tasks created
+# out of these templates, in case the task doesn't provide that particular variable.
+#  - The "default_vars.time_period" and "default_vars.frequency" keys that are used by a few
+#    templates are properties of the WindowNode of Kapacitor. The points that Kapacitor receives
+#    within the "default_vars.time_period" will be emitted to the next node in the template. The
+#    "default_vars.frequency" tells you how often the points collected in the specified time period
+#    should be emitted. If the frequency is shorter than the time period, then the same data
+#    points can be emitted multiple times.
+#  - The "default_vars.threshold" in the Deadman template tells you how many data points Kapacitor
+#    must receive within the specified time period to consider a host "UP".
+#
+# use_tls: If Kapacitor is supposed to be accessible via TLS (using the hostname provided
+#          in the variable above), then set this variable to 'true'
+#
+# Since Kapacitor doesn't support HTTP basic authentication, we can use nginx's basic_auth
+# module instead. Specify the username and password to be used for the authentication in the
+# "basic_auth" hash.
+# Unfortunately, InfluxDB's open source version doesn't support sending data to a Kapacitor
+# subscription endpoint using basic authentication and therefore won't be able to send data
+# to Kapacitor without removing the basic auth feature. So, as a compromise, you can also set
+# a list of allowed IPs in the "allowed_ips" key, which would tell nginx that the HTTP requests
+# coming from the allowed IPs don't need to go through HTTP authentication.
+#
+# "basic_auth" and "allowed_ips" will only work if "use_tls" is set to true.
+#
+kapacitor:
+  hostname: "kapacitor.domain.com"
+  smtp:
+    from_email: "kapacitor@domain.com"
+  influxdb:
+    url: "http://influxdb.domain.com:8086"
+    username: "username"
+    password: "password"
+  templates:
+    - name: "cpu_usage"
+      default_vars:
+        info_usage_percent: 25.0
+        warn_usage_percent: 50.0
+        crit_usage_percent: 75.0
+        time_period: "5m"
+        frequency: "1m"
+    - name: "disk_usage"
+      default_vars:
+        info_usage_percent: 70.0
+        warn_usage_percent: 80.0
+        crit_usage_percent: 90.0
+    - name: "available_memory"
+      default_vars:
+        info_usage_percent: 30.0
+        warn_usage_percent: 20.0
+        crit_usage_percent: 10.0
+        time_period: "5m"
+        frequency: "1m"
+    - name: "net_usage"
+      default_vars:
+        info_speed_mbps: 40.0
+        warn_speed_mbps: 60.0
+        crit_speed_mbps: 80.0
+        time_period: "5m"
+        frequency: "1m"
+    - name: "net_speed_test"
+      default_vars:
+        info_speed_mbps: 90.0
+        warn_speed_mbps: 80.0
+        crit_speed_mbps: 70.0
+        time_period: "5m"
+        frequency: "1m"
+    - name: "service_status"
+      default_vars: ~
+    - name: "deadman"
+      default_vars:
+        threshold: 4.0
+        time_period: "1m"
+    - name: "tls_expiry"
+      default_vars:
+        info_expiry_days: 40
+        warn_expiry_days: 30
+        crit_expiry_days: 20
+    - name: "failed_systemd_unit"
+      default_vars: ~
+  use_tls: "true"
+  allowed_ips:
+    - "10.1.1.1"
+    - "10.1.1.2"
+  basic_auth:
+    username: "username"
+    password: "password"
 ...

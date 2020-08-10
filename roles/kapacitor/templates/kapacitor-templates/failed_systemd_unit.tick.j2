@@ -1,0 +1,37 @@
+// Alert when any systemd unit reaches the failed state
+
+dbrp "telegraf"."autogen"
+
+// Host name
+var host string
+
+{% raw -%}
+// Dataframe
+var data = stream
+    |from()
+        .measurement('systemd_units')
+        .where(lambda: "host" == host)
+		.groupBy('name')
+    // Adding the sample node to prevent unordered data points from generating false alarms
+    |sample(3)
+    |eval(lambda: "active_code")
+        .as('stat')
+
+// Alert
+var alert = data
+    |alert()
+        .id(host + '/failed_systemd_unit/{{ index .Tags "name" }}')
+        .message('{{ index .Tags "name" }}\'s unit active state on ' + host + ': {{ .Level }}')
+        .details('<h1>' + host + '''</h1>
+<p>Unit Name: <strong>{{ index .Tags "name" }}</strong></p>
+<p>Unit Active state: <strong>{{ index .Tags "active" }}</strong></p>
+<p>Unit Substate: <strong>{{ index .Tags "sub" }}</strong></p>
+<p>Alert Level: <strong>{{ .Level }}</strong></p>
+<p>Alert Time: <strong>{{ .Time }}</strong></p>
+<p>Alert Duration: <strong>{{ .Duration }}</strong></p>''')
+        .crit(lambda: "stat" == 3)
+        .critReset(lambda: "stat" == 0 OR "stat" == 2)
+        .category(host + '_alerts')
+        .stateChangesOnly(30m)
+        .topic('send-alerts')
+{% endraw %}

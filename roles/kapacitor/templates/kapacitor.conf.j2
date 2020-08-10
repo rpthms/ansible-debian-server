@@ -1,0 +1,115 @@
+# The hostname of this node.
+# Must be resolvable by any configured InfluxDB hosts.
+hostname = "{{ kapacitor.hostname }}"
+# Directory for storing a small amount of metadata about the server.
+data_dir = "/var/lib/kapacitor"
+
+# Do not apply configuration overrides during startup.
+# Useful if the configuration overrides cause Kapacitor to fail startup.
+# This option is intended as a safe guard and should not be needed in practice.
+skip-config-overrides = false
+
+# Default retention-policy, if a write is made to Kapacitor and
+# it does not have a retention policy associated with it,
+# then the retention policy will be set to this value
+default-retention-policy = ""
+
+[http]
+  # HTTP API Server for Kapacitor
+  # This server is always on,
+  # it serves both as a write endpoint
+  # and as the API endpoint for all other
+  # Kapacitor calls.
+  bind-address = {% if kapacitor.use_tls is defined and (kapacitor.use_tls | d(false) | bool) is true %}"127.0.0.1:9092"{% else %}":9092"{% endif %}
+
+  log-enabled = true
+  write-tracing = false
+  pprof-enabled = false
+  https-enabled = false
+  # https-certificate = "/etc/ssl/kapacitor.pem"
+  ### Use a separate private key location.
+  # https-private-key = ""
+
+[config-override]
+  # Enable/Disable the service for overridding configuration via the HTTP API.
+  enabled = false
+
+[logging]
+    # Destination for logs
+    # Can be a path to a file or 'STDOUT', 'STDERR'.
+    file = "STDOUT"
+    # Logging level can be one of:
+    # DEBUG, INFO, ERROR
+    # HTTP logging can be disabled in the [http] config section.
+    level = "DEBUG"
+
+[load]
+  # Enable/Disable the service for loading tasks/templates/handlers
+  # from a directory
+  enabled = true
+  # Directory where task/template/handler files are set
+  dir = "/etc/kapacitor/load-dir"
+
+[replay]
+  # Where to store replay files, aka recordings.
+  dir = "/var/lib/kapacitor/replay"
+
+[storage]
+  # Where to store the Kapacitor boltdb database
+  boltdb = "/var/lib/kapacitor/kapacitor.db"
+
+# Multiple InfluxDB configurations can be defined.
+# Exactly one must be marked as the default.
+# Each one will be given a name and can be referenced in batch queries and InfluxDBOut nodes.
+[[influxdb]]
+  # Connect to an InfluxDB cluster
+  # Kapacitor can subscribe, query and write to this cluster.
+  # Using InfluxDB is not required and can be disabled.
+  default = true
+  {% if kapacitor.influxdb.url is defined and kapacitor.influxdb.username is defined and kapacitor.influxdb.password is defined %}
+  enabled = true
+  name = "Alert-DB"
+  urls = ["{{ kapacitor.influxdb.url }}"]
+  username = "{{ kapacitor.influxdb.username }}"
+  password = "{{ kapacitor.influxdb.password }}"
+  timeout = 0
+
+  # Do not verify the TLS/SSL certificate.
+  # This is insecure.
+  insecure-skip-verify = false
+
+  # Maximum time to try and connect to InfluxDB during startup
+  startup-timeout = "5m"
+
+  # Turn off all subscriptions
+  disable-subscriptions = true
+  {% else %}
+  enabled = false
+  {% endif %}
+
+[smtp]
+  # Configure an SMTP email server
+  # Will use TLS and authentication if possible
+  # Only necessary for sending emails from alerts.
+  enabled = true
+  host = "localhost"
+  port = 25
+  username = ""
+  password = ""
+  # From address for outgoing mail
+  from = "{{ kapacitor.smtp.from_email }}"
+  # List of default To addresses.
+  # to = ["oncall@example.com"]
+
+  # Skip TLS certificate verify when connecting to SMTP server
+  no-verify = false
+  # Close idle connections after timeout
+  idle-timeout = "30s"
+
+  # If true the all alerts will be sent via Email
+  # without explicitly marking them in the TICKscript.
+  global = false
+  # Only applies if global is true.
+  # Sets all alerts in state-changes-only mode,
+  # meaning alerts will only be sent if the alert state changes.
+  state-changes-only = false

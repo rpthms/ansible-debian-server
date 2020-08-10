@@ -1,0 +1,30 @@
+// Deadman Switch to check if a host is up
+
+dbrp "telegraf"."autogen"
+
+// Host name
+var host string
+// Number of data points needed to avoid the deadman alert
+var threshold = {{ template.default_vars.threshold }}
+// Time period within which the data points should arrive to avoid the deadman alert
+var time_period = {{ template.default_vars.time_period }}
+
+{% raw -%}
+// Dataframe
+var data = stream
+    |from()
+        .where(lambda: "host" == host)
+
+// Alert
+var alert = data
+    |deadman(threshold, time_period)
+        .id(host + '/up')
+        .message(host + '\'s Uptime: {{ .Level }}')
+        .details('<h1>' + host + '''</h1>
+<p>Host is: <strong>{{ if eq .Level "OK" }}Up{{ else }}Down{{ end }}</strong></p>
+<p>Alert Time: <strong>{{ .Time }}</strong></p>
+<p>Alert Duration: <strong>{{ .Duration }}</strong></p>''')
+        .inhibit(host + '_alerts')
+        .stateChangesOnly(30m)
+        .topic('send-alerts')
+{% endraw %}

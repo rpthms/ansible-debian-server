@@ -1,0 +1,45 @@
+// Alert on high memory usage
+
+dbrp "telegraf"."autogen"
+
+// Host name
+var host string
+// Info threshold for available memory in percentage
+var info_usage_percent = {{ template.default_vars.info_usage_percent }}
+// Warning threshold for available memory in percentage
+var warn_usage_percent = {{ template.default_vars.warn_usage_percent }}
+// Critical threshold for available memory in percentage
+var crit_usage_percent = {{ template.default_vars.crit_usage_percent }}
+// Length of the time range covered by the moving window
+var time_period = {{ template.default_vars.time_period }}
+// Frequency at which the moving window must be emitted
+var frequency = {{ template.default_vars.frequency }}
+
+{% raw -%}
+// Dataframe
+var data = stream
+    |from()
+        .measurement('mem')
+        .where(lambda: "host" == host)
+    |window()
+        .period(time_period)
+        .every(frequency)
+    |mean('available_percent')
+        .as('stat')
+
+// Alert
+var alert = data
+    |alert()
+        .id(host + '/available_memory')
+        .message(host + '\'s Available Memory: {{ .Level }}')
+        .details('<h1>' + host + '''</h1>
+<p>Available Memory: <strong>{{ index .Fields "stat" | printf "%.2f" }}%</strong></p>
+<p>Alert Level: <strong>{{ .Level }}</strong></p>
+<p>Alert Time: <strong>{{ .Time }}</strong></p>
+<p>Alert Duration: <strong>{{ .Duration }}</strong></p>''')
+        .info(lambda: "stat" < info_usage_percent)
+        .warn(lambda: "stat" < warn_usage_percent)
+        .crit(lambda: "stat" < crit_usage_percent)
+        .category(host + '_alerts')
+        .topic('send-alerts')
+{% endraw %}

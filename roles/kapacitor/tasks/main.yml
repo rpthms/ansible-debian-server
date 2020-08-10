@@ -1,0 +1,114 @@
+---
+# Role to install and configure a Kapacitor server
+
+- name: "Add the InfluxData repo"
+  template:
+    src: "influxdata.list.j2"
+    dest: "/etc/apt/sources.list.d/influxdata.list"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Add InfluxData's GPG key to apt's keyring"
+  copy:
+    src: "influxdata.gpg"
+    dest: "/usr/share/keyrings/influxdata.gpg"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Install Kapacitor"
+  apt:
+    name: "kapacitor"
+    update_cache: yes
+    state: present
+
+- name: "Copy Kapacitor's config file"
+  template:
+    src: "kapacitor.conf.j2"
+    dest: "/etc/kapacitor/kapacitor.conf"
+    lstrip_blocks: yes
+    owner: "kapacitor"
+    group: "sudo"
+    mode: 0440
+  notify:
+    - "Restart Kapacitor"
+
+- name: "Create directories for templates and handlers in Kapacitor's load directory"
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "kapacitor"
+    group: "sudo"
+    mode: 0550
+  loop:
+    - "/etc/kapacitor/load-dir/templates"
+    - "/etc/kapacitor/load-dir/handlers"
+
+- name: "Copy the Kapacitor templates"
+  template:
+    src: "kapacitor-templates/{{ template.name }}.tick.j2"
+    dest: "/etc/kapacitor/load-dir/templates/{{ template.name }}.tick"
+    lstrip_blocks: yes
+    owner: "kapacitor"
+    group: "sudo"
+    mode: 0440
+  loop: "{{ kapacitor.templates }}"
+  loop_control:
+    loop_var: template
+  notify:
+    - "Restart Kapacitor"
+
+- name: "Add an email handler for Kapacitor alerts"
+  template:
+    src: "kapacitor-handlers/email.yaml.j2"
+    dest: "/etc/kapacitor/load-dir/handlers/email.yaml"
+    owner: "kapacitor"
+    group: "sudo"
+    mode: 0550
+  notify:
+    - "Restart Kapacitor"
+
+- name: "Setup TLS for Kapacitor"
+  block:
+
+  - name: "Add an nginx location block to proxy_pass to Kapacitor"
+    template:
+      src: "nginx-kapacitor.conf.j2"
+      dest: "/etc/nginx/server-conf/{{ kapacitor.hostname }}/location/kapacitor.conf"
+      lstrip_blocks: yes
+      owner: root
+      group: root
+      mode: 0644
+    register: kapacitor_nginx_config
+
+  - name: "Install python-passlib to create an htpasswd file"
+    apt: {name: "python3-passlib", state: present}
+    when: kapacitor.basic_auth is defined and kapacitor.basic_auth is not none
+
+  - name: "Create an htpasswd file to enable basic auth for Kapacitor"
+    htpasswd:
+      path: "/etc/nginx/server-conf/{{ kapacitor.hostname }}/htpasswd"
+      name: "{{ kapacitor.basic_auth.username }}"
+      password: "{{ kapacitor.basic_auth.password }}"
+      crypt_scheme: sha512_crypt
+      owner: root
+      group: root
+      mode: 0644
+    when: kapacitor.basic_auth is defined and kapacitor.basic_auth is not none
+
+  - name: "Reload nginx"
+    systemd:
+      name: "nginx"
+      state: reloaded
+    when: kapacitor_nginx_config is changed
+
+  when: kapacitor.use_tls | d(false) | bool
+
+- name: "Enable and start the Kapacitor server"
+  systemd:
+    name: "kapacitor"
+    daemon_reload: yes
+    enabled: yes
+    state: started
+...

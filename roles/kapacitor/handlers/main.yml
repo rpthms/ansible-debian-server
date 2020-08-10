@@ -1,0 +1,8 @@
+---
+# Handlers for Kapacitor
+
+- name: "Restart Kapacitor"
+  systemd:
+    name: "kapacitor"
+    state: restarted
+...

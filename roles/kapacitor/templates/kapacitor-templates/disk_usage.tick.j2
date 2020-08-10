@@ -1,0 +1,48 @@
+// Alert on high disk usage
+
+dbrp "telegraf"."autogen"
+
+// Host name
+var host string
+// Filesystem path that will be checked
+var path string
+// Info threshold for disk usage in percentage
+var info_usage_percent = {{ template.default_vars.info_usage_percent }}
+// Warning threshold for disk usage in percentage
+var warn_usage_percent = {{ template.default_vars.warn_usage_percent }}
+// Critical threshold for disk usage in percentage
+var crit_usage_percent = {{ template.default_vars.crit_usage_percent }}
+
+{% raw -%}
+// Dataframe
+var data = stream
+    |from()
+        .measurement('disk')
+        .where(lambda: "host" == host)
+        .where(lambda: "path" == path)
+	// Adding the window and the last node to prevent unordered data points
+	// from generating false alarms
+	|window()
+	    .every(30s)
+	    .period(30s)
+	|last('used_percent')
+	    .as('stat')
+
+// Alert
+var alert = data
+    |alert()
+        .id(host + '/disk_usage')
+        .message(host + '\'s Disk Usage: {{ .Level }}')
+        .details('<h1>' + host + '''</h1>
+<p>Filesystem Path: <strong>{{ index .Tags "path" }}</strong></p>
+<p>Filesystem Usage: <strong>{{ index .Fields "stat" | printf "%.2f" }}%</strong></p>
+<p>Alert Level: <strong>{{ .Level }}</strong></p>
+<p>Alert Time: <strong>{{ .Time }}</strong></p>
+<p>Alert Duration: <strong>{{ .Duration }}</strong></p>''')
+        .info(lambda: "stat" > info_usage_percent)
+        .warn(lambda: "stat" > warn_usage_percent)
+        .crit(lambda: "stat" > crit_usage_percent)
+        .category(host + '_alerts')
+        .stateChangesOnly()
+        .topic('send-alerts')
+{% endraw %}

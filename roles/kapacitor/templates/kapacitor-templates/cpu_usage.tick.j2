@@ -1,0 +1,48 @@
+// Alert on high CPU usage
+
+dbrp "telegraf"."autogen"
+
+// Host name
+var host string
+// Info threshold for CPU usage in percentage
+var info_usage_percent = {{ template.default_vars.info_usage_percent }}
+// Warning threshold for CPU usage in percentage
+var warn_usage_percent = {{ template.default_vars.warn_usage_percent }}
+// Critical threshold for CPU usage in percentage
+var crit_usage_percent = {{ template.default_vars.crit_usage_percent }}
+// Length of the time range covered by the moving window
+var time_period = {{ template.default_vars.time_period }}
+// Frequency at which the moving window must be emitted
+var frequency = {{ template.default_vars.frequency }}
+
+{% raw -%}
+// Dataframe
+var data = stream
+    |from()
+        .measurement('cpu')
+        .where(lambda: "host" == host)
+        .where(lambda: "cpu" == 'cpu-total')
+    |eval(lambda: 100.0 - "usage_idle")
+        .as('used')
+    |window()
+        .period(time_period)
+        .every(frequency)
+    |mean('used')
+        .as('stat')
+
+// Alert
+var alert = data
+    |alert()
+        .id(host + '/cpu_usage')
+        .message(host + '\'s CPU Usage: {{ .Level }}')
+        .details('<h1>' + host + '''</h1>
+<p>CPU Usage: <strong>{{ index .Fields "stat" | printf "%.2f" }}%</strong></p>
+<p>Alert Level: <strong>{{ .Level }}</strong></p>
+<p>Alert Time: <strong>{{ .Time }}</strong></p>
+<p>Alert Duration: <strong>{{ .Duration }}</strong></p>''')
+        .info(lambda: "stat" > info_usage_percent)
+        .warn(lambda: "stat" > warn_usage_percent)
+        .crit(lambda: "stat" > crit_usage_percent)
+        .category(host + '_alerts')
+        .topic('send-alerts')
+{% endraw %}

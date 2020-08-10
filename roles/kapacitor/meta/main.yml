@@ -1,0 +1,9 @@
+---
+# Role dependencies for Kapacitor
+
+dependencies:
+  - role: "nginx"
+    vars:
+      nginx_server_name: "{{ kapacitor.hostname }}"
+    when: kapacitor.use_tls | d(false) | bool
+...

@@ -1,0 +1,54 @@
+// Alert on high network usage
+
+dbrp "telegraf"."autogen"
+
+// Host name
+var host string
+// Interface to monitor
+var interface string
+// Info threshold for the network usage
+var info_speed_mbps = {{ template.default_vars.info_speed_mbps }}
+// Warning threshold for the network usage
+var warn_speed_mbps = {{ template.default_vars.warn_speed_mbps }}
+// Critical threshold for the network usage
+var crit_speed_mbps = {{ template.default_vars.crit_speed_mbps }}
+// Length of the time range covered by the moving window
+var time_period = {{ template.default_vars.time_period }}
+// Frequency at which the moving window must be emitted
+var frequency = {{ template.default_vars.frequency }}
+
+{% raw -%}
+// Download Dataframe
+var data = stream
+    |from()
+        .measurement('net')
+        .where(lambda: "host" == host)
+        .where(lambda: "interface" == interface)
+    |derivative('bytes_recv')
+        .as('down_speed')
+        .nonNegative()
+    |window()
+        .period(time_period)
+        .every(frequency)
+    |mean('down_speed')
+        .as('down_mean')
+    |eval(lambda: "down_mean" * 8.0 / (1024.0 * 1024.0))
+        .as('stat')
+
+// Alert
+var alert = data
+    |alert()
+        .id(host + '/net_usage')
+        .message(host + '\'s Network Usage: {{ .Level }}')
+        .details('<h1>' + host + '''</h1>
+<p>Mean download speed over the last '''+string(time_period)+''': <strong>{{ index .Fields "stat" | printf "%.2f" }} Mbps</strong></p>
+<p>Alert Level: <strong>{{ .Level }}</strong></p>
+<p>Alert Time: <strong>{{ .Time }}</strong></p>
+<p>Alert Duration: <strong>{{ .Duration }}</strong></p>''')
+        .info(lambda: "stat" > info_speed_mbps)
+        .warn(lambda: "stat" > warn_speed_mbps)
+        .crit(lambda: "stat" > crit_speed_mbps)
+        .category(host + '_alerts')
+        .stateChangesOnly(30m)
+        .topic('send-alerts')
+{% endraw %}

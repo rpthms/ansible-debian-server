@@ -1,0 +1,34 @@
+location /kapacitor/ {
+    #
+    # Since Kapacitor doesn't support HTTP Basic Authentication in the open source
+    # version of the program, we'll have to setup the authentication part in nginx
+    # instead. The problem is that there is no way to give the authentication
+    # credentials to InfluxDB when creating a Kapacitor subscription, which will end
+    # up in InfluxDB not being able to send its data to Kapacitor.
+    #
+    # To solve this issue, we're going to use both IP based access rules and basic
+    # authentication in this location block. If either the IP based access rule or
+    # the basic authentication allows access to this block, then access will be granted.
+    # This will allow InfluxDB to talk to Kapacitor through this location block, by
+    # adding the InfluxDB server's IP to the "kapacitor.allowed_ips" list.
+    #
+    {% if kapacitor.allowed_ips is defined and kapacitor.basic_auth is defined %}
+    satisfy any;
+
+    {% endif %}
+    {% if kapacitor.allowed_ips is defined %}
+    {% for ip in kapacitor.allowed_ips %}
+    allow {{ ip }};
+    {% endfor %}
+    deny all;
+
+    {% endif %}
+    {% if kapacitor.basic_auth is defined %}
+    auth_basic            Kapacitor;
+    auth_basic_user_file  /etc/nginx/server-conf/{{ kapacitor.hostname }}/htpasswd;
+
+    {% endif %}
+    proxy_http_version    1.1;
+    proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_pass            http://127.0.0.1:9092;
+}

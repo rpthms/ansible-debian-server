@@ -1,0 +1,47 @@
+// Alert when the iperf3 results go below a threshold
+
+dbrp "telegraf"."autogen"
+
+// Host name
+var host string
+// Info threshold for the network speed test
+var info_speed_mbps = {{ template.default_vars.info_speed_mbps }}
+// Warning threshold for the network speed test
+var warn_speed_mbps = {{ template.default_vars.warn_speed_mbps }}
+// Critical threshold for the network speed test
+var crit_speed_mbps = {{ template.default_vars.crit_speed_mbps }}
+// Length of the time range covered by the moving window
+var time_period = {{ template.default_vars.time_period }}
+// Frequency at which the moving window must be emitted
+var frequency = {{ template.default_vars.frequency }}
+
+{% raw -%}
+// Download Dataframe
+var data = stream
+    |from()
+        .measurement('iperf3')
+        .where(lambda: "host" == host)
+    |window()
+        .period(time_period)
+        .every(frequency)
+    |mean('download_speed')
+        .as('download_mean')
+    |eval(lambda: "download_mean" / (1024.0 * 1024.0))
+        .as('stat')
+
+// Alert
+var alert = data
+    |alert()
+        .id(host + '/net_speed_test')
+        .message(host + '\'s Network Speed Test: {{ .Level }}')
+        .details('<h1>' + host + '''</h1>
+<p>Mean network bandwidth over the last '''+string(time_period)+''': <strong>{{ index .Fields "stat" | printf "%.2f" }} Mbps</strong></p>
+<p>Alert Level: <strong>{{ .Level }}</strong></p>
+<p>Alert Time: <strong>{{ .Time }}</strong></p>
+<p>Alert Duration: <strong>{{ .Duration }}</strong></p>''')
+        .info(lambda: "stat" < info_speed_mbps)
+        .warn(lambda: "stat" < warn_speed_mbps)
+        .crit(lambda: "stat" < crit_speed_mbps)
+        .category(host + '_alerts')
+        .topic('send-alerts')
+{% endraw %}
