@@ -13,9 +13,15 @@ This playbook currently includes the following roles:
 - openvpn: Set up the OpenVPN server and configure firewall rules
 - rsyslog: Set up a remote syslog server
 - user-config: Local user configurations. This role has beek kept empty for you to fill it with your user configurations. 
-- nginx: Setup an HTTP server
+- nginx: Setup an HTTPS server block for a given hostname. This role will call the certbot role to generate a TLS cert.
+- nginx-base: Setup a default HTTP and HTTPS server using the server's FQDN. This role should NEVER be called. Use the nginx role instead.
 - znc: Setup an IRC bounder via ZNC
 - wireguard: Setup a WireGuard VPN server
+- certbot: Generate a TLS cert for the given hostname. Only uses the DNS-01 challenege for domain verification.
+- influxdb: Set up a time series database use InfluxDB
+- kapacitor: Set up data processing and alert generation using Kapacitor. Kapacitor gets its data from an InfluxDB server.
+- monitor: Set up Telegraf to gather data from a host and send it to an InfluxDB server and set up alerting tasks on a remote Kapacitor server.
+- grafana: Set up a Grafana server to create dashboards and view the time series data stored on an InfluxDB server
 
 # Configure the playbook
 Before you use this playbook, you'll need to do 2 things
