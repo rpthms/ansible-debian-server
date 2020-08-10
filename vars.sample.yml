@@ -248,4 +248,66 @@ wg_peer_server_peers:
     wg_peer_allowed_ips:
       - '192.168.200.0/24'
       - '10.10.200.0/24'
+
+# InfluxDB
+#
+# Set the following variables to configure an InfluxDB server
+#
+# influxdb_admin_*: InfluxDB's admin user credentials
+#
+# influxdb_telegraf_*: User credentials for Telegraf servers. This user will only have
+#                      write access to the database
+#
+# influxdb_kapacitor_*: User credentials for the Kapacitor server. Certain tasks in the
+#                       Kapacitor server might require access to the InfluxDB server to
+#                       write back data points related to the task.
+#
+# influxdb_grafana_*: User credentials for the Grafana server. This user will only have
+#                     read access to the database
+#
+# influxdb_tls_domain: If you want InfluxDB to listen over TLS, then you must set the name
+#                      of the TLS domain in this variable. This variable will pull in the
+#                      nginx role and the certbot role to do the TLS setup, so make sure to
+#                      fill in the certbot variables beforehand.
+#                      In the absence of this variable, InfluxDB will listen on all the
+#                      interfaces of the host via HTTP
+#
+# kapacitor_subscription_url: If you want InfluxDB to send its data to a Kapacitor server for
+#                             further data processing / alert handling, set the URL of the
+#                             server in this variable.
+#
+# If you want to restore a backup of your InfluxDB data onto your new server, copy the backed
+# up shards into a directory called 'influxdb-backup' in roles/influxdb/files. The directory
+# structure should look something like this:
+#
+# roles/influxdb/files/influxdb-backup
+# ├── 20200715T071901Z.manifest
+# ├── 20200715T071901Z.meta
+# ├── 20200715T071901Z.s17.tar.gz
+# ├── 20200715T071901Z.s25.tar.gz
+# ├── 20200715T071901Z.s2.tar.gz
+# ├── 20200715T071901Z.s33.tar.gz
+#
+# (It's probably best to ignore the _interal database when performing a backup)
+#
+# Make sure that the backup contains the admin, grafana and telegraf users with the proper
+# privileges applied to them, or that you create those users manually, because this role
+# won't create users or assign privileges when a backup is restored.
+#
+# NOTE: The restore operation can only be run once. IT IS NOT IDEMPOTENT!! If you want to
+#       run this role again, make sure you delete the backup directory and ensure that the
+#       credentials and privileges of the users existing on the database match the
+#       variables given below.
+#
+influxdb:
+  admin_username: 'admin'
+  admin_password: 'password'
+  telegraf_username: 'username'
+  telegraf_password: 'password'
+  kapacitor_username: 'username'
+  kapacitor_password: 'password'
+  grafana_username: 'username'
+  grafana_password: 'password'
+  tls_domain: 'influxdb.domain.com'
+  kapacitor_subscription_url: 'http://kapacitor.domain.com:9092'
 ...

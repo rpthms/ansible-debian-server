@@ -1,0 +1,209 @@
+---
+# Role to install and configure an InfluxDB server
+
+- name: "Add the InfluxData repo"
+  template:
+    src: "influxdata.list.j2"
+    dest: "/etc/apt/sources.list.d/influxdata.list"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Add InfluxData's GPG key to apt's keyring"
+  copy:
+    src: "influxdata.gpg"
+    dest: "/usr/share/keyrings/influxdata.gpg"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Install InfluxDB"
+  apt:
+    name: "influxdb"
+    update_cache: yes
+    state: present
+
+- name: "Copy InfluxDB's config file"
+  template:
+    src: "influxdb.conf.j2"
+    dest: "/etc/influxdb/influxdb.conf"
+    owner: root
+    group: root
+    mode: 0644
+  register: influxdb_conf_result
+
+- name: "Enable and start the InfluxDB server"
+  systemd:
+    name: "influxdb"
+    daemon_reload: yes
+    enabled: yes
+    state: started
+  register: influxdb_first_start
+
+- name: "Restart the InfluxDB server if the config file has changed"
+  systemd:
+    name: "influxdb"
+    state: restarted
+  when:
+    - influxdb_conf_result is changed
+    - influxdb_first_start is not changed
+
+- name: "Check if an InfluxDB backup directory exists"
+  local_action:
+    module: "stat"
+    path: "{{ role_path ~ '/files/influxdb-backup' }}"
+  register: influxdb_backup_dir
+
+- name: "Restore an InfluxDB backup"
+  block:
+
+    - name: "Copy the backup directory to the server"
+      copy:
+        src: "influxdb-backup"
+        dest: "/var/tmp/"
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: "Run the InfluxDB restore command"
+      command: "/usr/bin/influxd restore -portable /var/tmp/influxdb-backup"
+
+    - name: "Delete the backup directory"
+      file:
+        path: "/var/tmp/influxdb-backup"
+        state: absent
+
+  when: influxdb_backup_dir.stat.exists
+
+- name: "Create an admin user in InfluxDB"
+  uri:
+    url: "http://localhost:8086/query"
+    url_username: "{{ influxdb.admin_username }}"
+    url_password: "{{ influxdb.admin_password }}"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      q: "CREATE USER \"{{ influxdb.admin_username }}\" WITH PASSWORD '{{ influxdb.admin_password }}' WITH ALL PRIVILEGES"
+  no_log: yes
+  when: not influxdb_backup_dir.stat.exists
+
+- name: "InfluxDB tasks for Telegraf"
+  block:
+
+  - name: "Create a user for Telegraf in InfluxDB"
+    uri:
+      url: "http://localhost:8086/query"
+      url_username: "{{ influxdb.admin_username }}"
+      url_password: "{{ influxdb.admin_password }}"
+      method: POST
+      body_format: form-urlencoded
+      body:
+        q: "CREATE USER \"{{ influxdb.telegraf_username }}\" WITH PASSWORD '{{ influxdb.telegraf_password }}'"
+    no_log: yes
+
+  - name: "Create the Telegraf database in InfluxDB"
+    uri:
+      url: "http://localhost:8086/query"
+      url_username: "{{ influxdb.admin_username }}"
+      url_password: "{{ influxdb.admin_password }}"
+      method: POST
+      body_format: form-urlencoded
+      body:
+        q: "CREATE DATABASE \"telegraf\""
+
+  - name: "Grant write privilege on the Telegraf database to the Telegraf user"
+    uri:
+      url: "http://localhost:8086/query"
+      url_username: "{{ influxdb.admin_username }}"
+      url_password: "{{ influxdb.admin_password }}"
+      method: POST
+      body_format: form-urlencoded
+      body:
+        q: "GRANT WRITE ON \"telegraf\" TO \"{{ influxdb.telegraf_username }}\""
+
+  when: influxdb.telegraf_username is defined and influxdb.telegraf_password is defined and (not influxdb_backup_dir.stat.exists)
+
+- name: "InfluxDB tasks for Kapacitor"
+  block:
+
+  - name: "Create a user for Kapacitor in InfluxDB"
+    uri:
+      url: "http://localhost:8086/query"
+      url_username: "{{ influxdb.admin_username }}"
+      url_password: "{{ influxdb.admin_password }}"
+      method: POST
+      body_format: form-urlencoded
+      body:
+        q: "CREATE USER \"{{ influxdb.kapacitor_username }}\" WITH PASSWORD '{{ influxdb.kapacitor_password }}'"
+    no_log: yes
+
+  - name: "Grant write privilege on the Telegraf database to the Kapacitor user"
+    uri:
+      url: "http://localhost:8086/query"
+      url_username: "{{ influxdb.admin_username }}"
+      url_password: "{{ influxdb.admin_password }}"
+      method: POST
+      body_format: form-urlencoded
+      body:
+        q: "GRANT WRITE ON \"telegraf\" TO \"{{ influxdb.kapacitor_username }}\""
+
+  - name: "Create a retention policy in the Telegraf database for Kapacitor alert data"
+    uri:
+      url: "http://localhost:8086/query"
+      url_username: "{{ influxdb.admin_username }}"
+      url_password: "{{ influxdb.admin_password }}"
+      method: POST
+      body_format: form-urlencoded
+      body:
+        q: "CREATE RETENTION POLICY \"kapacitor_alert_rp\" ON \"telegraf\" DURATION 7d REPLICATION 1"
+
+  when: influxdb.kapacitor_username is defined and influxdb.kapacitor_password is defined and (not influxdb_backup_dir.stat.exists)
+
+- name: "InfluxDB tasks for Grafana"
+  block:
+
+  - name: "Create a user for Grafana in InfluxDB"
+    uri:
+      url: "http://localhost:8086/query"
+      url_username: "{{ influxdb.admin_username }}"
+      url_password: "{{ influxdb.admin_password }}"
+      method: POST
+      body_format: form-urlencoded
+      body:
+        q: "CREATE USER \"{{ influxdb.grafana_username }}\" WITH PASSWORD '{{ influxdb.grafana_password }}'"
+    no_log: yes
+
+  - name: "Grant read privilege on the Telegraf database to the Grafana user"
+    uri:
+      url: "http://localhost:8086/query"
+      url_username: "{{ influxdb.admin_username }}"
+      url_password: "{{ influxdb.admin_password }}"
+      method: POST
+      body_format: form-urlencoded
+      body:
+        q: "GRANT READ ON \"telegraf\" TO \"{{ influxdb.grafana_username }}\""
+
+  when: influxdb.grafana_username is defined and influxdb.grafana_password is defined and (not influxdb_backup_dir.stat.exists)
+
+- name: "Create a subscription for a Kapacitor server"
+  uri:
+    url: "http://localhost:8086/query"
+    url_username: "{{ influxdb.admin_username }}"
+    url_password: "{{ influxdb.admin_password }}"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      q: "CREATE SUBSCRIPTION \"kapacitor-sub\" ON \"telegraf\".\"autogen\" DESTINATIONS ANY '{{ influxdb.kapacitor_subscription_url }}/kapacitor/v1'"
+  when: influxdb.kapacitor_subscription_url is defined and influxdb.kapacitor_subscription_url is not none and (not influxdb_backup_dir.stat.exists)
+
+- name: "Add an nginx location block to proxy_pass to InfluxDB"
+  copy:
+    src: "nginx-influxdb.conf"
+    dest: "/etc/nginx/server-conf/{{ influxdb.tls_domain }}/location/influxdb.conf"
+    owner: root
+    group: root
+    mode: 0644
+  when: influxdb.tls_domain is defined and influxdb.tls_domain is not none
+  notify:
+    - "Reload nginx"
+...

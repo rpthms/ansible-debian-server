@@ -1,0 +1,9 @@
+---
+# Role dependencies for InfluxDB
+
+dependencies:
+  - role: "nginx"
+    vars:
+      nginx_server_name: "{{ influxdb.tls_domain }}"
+    when: influxdb.tls_domain is defined and influxdb.tls_domain is not none
+...
