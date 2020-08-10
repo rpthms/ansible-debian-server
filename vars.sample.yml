@@ -415,4 +415,161 @@ kapacitor:
   basic_auth:
     username: "username"
     password: "password"
+
+#
+# Monitor
+#
+# Setup up data collection using Telegraf and configure alerts on a Kapacitor server
+#
+# For telegraf, you need to configure the variables under the monitor_telegraf hash. The
+# plugins hash contains two keys: "input" and "output". These keys represent the various
+# input and output plugins that Telegraf supports. You can only use the "influxdb" output
+# plugin currently. For the input plugins, you can also provide options to each plugin.
+# All the options that are supported by the various plugins of this Telegraf role are shown
+# in the vars.sample.yml file.
+#
+# For the exec plugin: If you're using a custom script with the exec plugin and you want to
+# copy that script on to the remote system, then place your scripts inside the
+# telegraf/files/exec-scripts directory. These scripts will be then copied to /usr/local/bin
+# on the remote system. Make sure all the custom scripts are prefixed with /usr/local/bin in
+# the command list for the exec plugin below.
+#
+# Each input plugin also accepts the optional "interval" config option which allows you to
+# set a different data collection interval than the global interval setting in
+# /etc/telegraf.conf.
+#
+#
+# For Kapacitor, each task requires the name of the template in the "template" key and the
+# variables for the tasks in the "vars" key. The "host" var doesn't need to be specified in
+# the 'vars' list, it will automatically be added by the role. Each variable in the 'vars'
+# list is of the format: "[<variable_name>, <variable_type>, <variable_value>]"
+#
+# If you want to a template more than once with different variables, you need to specify
+# a suffix for the task ID in the 'id_suffix' key. The id_suffix MUST START WITH A DOT, else
+# the suffix will be joined with the template name with no separation and result in an
+# unreadable mess.
+#
+monitor:
+  telegraf:
+    plugins:
+      input:
+        cpu:
+          percpu: "true"
+          totalcpu: "true"
+          collect_cpu_time: "false"
+          report_active: "false"
+        disk:
+          mount_points:
+            - "/srv"
+            - "/var/www/html"
+          interval: "15s"
+        diskio:
+          devices:
+            - "sda"
+            - "sdb"
+        dns_query:
+          servers:
+            - "1.1.1.1"
+            - "8.8.8.8"
+          domains:
+            - "example.com"
+          timeout: 5
+        exec:
+          - commands:
+              - "/usr/local/bin/random_metric"
+            timeout: "30s"
+            interval: "10s"
+          - commands:
+              - "/usr/local/bin/second_random_metric"
+            timeout: "1m"
+            interval: "5m"
+        kernel: ~
+        mem: ~
+        net:
+          interfaces:
+            - "eth0"
+            - "eth1"
+        processes: ~
+        smart:
+          path: "/bin/smartctl"
+          timeout: "30s"
+          interval: "15s"
+        system:
+          interval: "15s"
+        systemd_units:
+          unittype: "service,socket"
+          timeout: "2s"
+        temp: ~
+        wireguard:
+          devices:
+            - "wg0"
+        x509_cert:
+          sources:
+            - "https://abc.example.com:443"
+            - "https://def.example.com:443"
+          timeout: "5s"
+      output:
+        influxdb:
+          url: "http://influxdb.domain.com:8086"
+          username: "username"
+          password: "password"
+  kapacitor:
+    url: "http://kapacitor.domain.com:9092"
+    username: "username"
+    password: "password"
+    tasks:
+      - template: "cpu_usage"
+        vars:
+          - ["info_usage_percent","float",25.0]
+          - ["warn_usage_percent","float",50.0]
+          - ["crit_usage_percent","float",75.0]
+          - ["time_period","duration","5m"]
+          - ["frequency","duration","1m"]
+      - template: "disk_usage"
+        vars:
+          - ["path","string","/"]
+          - ["info_usage_percent","float",70.0]
+          - ["warn_usage_percent","float",80.0]
+          - ["crit_usage_percent","float",90.0]
+      - template: "available_memory"
+        vars:
+          - ["info_usage_percent","float",30.0]
+          - ["warn_usage_percent","float",20.0]
+          - ["crit_usage_percent","float",10.0]
+          - ["time_period","duration","5m"]
+          - ["frequency","duration","1m"]
+      - template: "net_usage"
+        vars:
+          - ["interface","string","eth0"]
+          - ["info_speed_mbps","float",40.0]
+          - ["warn_speed_mbps","float",60.0]
+          - ["crit_speed_mbps","float",80.0]
+          - ["time_period","duration","5m"]
+          - ["frequency","duration","1m"]
+      - template: "net_speed_test"
+        vars:
+          - ["info_speed_mbps","float",90.0]
+          - ["warn_speed_mbps","float",80.0]
+          - ["crit_speed_mbps","float",70.0]
+          - ["time_period","duration","5m"]
+          - ["frequency","duration","1m"]
+      - template: "service_status"
+        id_suffix: ".nginx"
+        vars:
+          - ["service","string","nginx.service"]
+      - template: "service_status"
+        id_suffix: ".ssh"
+        vars:
+          - ["service","string","ssh.service"]
+      - template: "deadman"
+        vars:
+          - ["threshold","float",4.0]
+          - ["time_period","duration","1m"]
+      - template: "tls_expiry"
+        vars:
+          - ["info_expiry_days","int",30]
+          - ["warn_expiry_days","int",20]
+          - ["crit_expiry_days","int",10]
+      - template: "failed_systemd_unit"
+        vars: ~
 ...

@@ -1,0 +1,8 @@
+---
+# Handlers for Telegraf
+
+- name: "Restart Telegraf"
+  systemd:
+    name: "telegraf"
+    state: restarted
+...

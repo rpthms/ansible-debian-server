@@ -1,0 +1,52 @@
+---
+# Role to set up data collection using Telegraf and alerts on a Kapacitor server
+
+- name: "Add the InfluxData repo"
+  template:
+    src: "influxdata.list.j2"
+    dest: "/etc/apt/sources.list.d/influxdata.list"
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - "telegraf"
+    - "kapacitor-alerts"
+
+- name: "Add InfluxData's GPG key to apt's keyring"
+  copy:
+    src: "influxdata.gpg"
+    dest: "/usr/share/keyrings/influxdata.gpg"
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - "telegraf"
+    - "kapacitor-alerts"
+
+- name: "Set up Telegraf"
+  include_tasks:
+    file: "telegraf.yml"
+  tags:
+    - "telegraf"
+
+- name: "Check if the Kapacitor server is available"
+  uri:
+    url: "{{ monitor.kapacitor.url }}/kapacitor/v1/ping"
+    url_username: "{{ monitor.kapacitor.username | d('') }}"
+    url_password: "{{ monitor.kapacitor.password | d('') }}"
+    status_code: ["204"]
+  register: kapacitor_server_result
+  ignore_errors: true
+  tags:
+    - "kapacitor-alerts"
+
+- name: "Set up Kapacitor Alerts"
+  include_tasks:
+    file: "kapacitor.yml"
+  loop: "{{ monitor.kapacitor.tasks }}"
+  loop_control:
+    loop_var: task_item
+  when: kapacitor_server_result.status == 204
+  tags:
+    - "kapacitor-alerts"
+...

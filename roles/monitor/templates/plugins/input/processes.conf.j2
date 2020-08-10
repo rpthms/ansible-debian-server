@@ -1,0 +1,8 @@
+# Get the number of processes and group them by status
+[[inputs.processes]]
+  # no configuration
+  {% if monitor.telegraf.plugins.input.processes.interval is defined %}
+
+  ## Data collection interval
+  interval = "{{ monitor.telegraf.plugins.input.processes.interval }}"
+  {% endif %}

@@ -1,0 +1,8 @@
+# # Read metrics about temperature
+[[inputs.temp]]
+  # no configuration
+  {% if monitor.telegraf.plugins.input.temp.interval is defined %}
+
+  ## Data collection interval
+  interval = "{{ monitor.telegraf.plugins.input.temp.interval }}"
+  {% endif %}

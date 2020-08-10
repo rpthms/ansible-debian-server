@@ -1,0 +1,20 @@
+{
+	"id": "{{ host_name }}.{{ task_item.template }}{{ task_item.id_suffix | d('') }}",
+	"template-id": "{{ task_item.template }}",
+	"status": "enabled",
+	"vars": {
+		{% if not (task_item.skip_host | d(false) | bool) %}
+		"host": {
+			"type": "string",
+			"value": "{{ host_name }}"
+		}
+		{% endif %}
+		{% for item in (task_item.vars | d([], true)) %}
+		,"{{ item[0] }}": {
+			"type": "{{ item[1] }}",
+			"value": {% if item[1] == "float" or item[1] == "int" %}{{ item[2] }}{% else %}"{{ item[2] }}"{% endif %}
+
+		}
+		{% endfor %}
+	}
+}

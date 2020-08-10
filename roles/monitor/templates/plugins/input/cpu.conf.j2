@@ -1,0 +1,18 @@
+# Read metrics about cpu usage
+[[inputs.cpu]]
+  ## Whether to report per-cpu stats or not
+  percpu = {{ monitor.telegraf.plugins.input.cpu.percpu | d(true) | bool | lower }}
+
+  ## Whether to report total system cpu stats or not
+  totalcpu = {{ monitor.telegraf.plugins.input.cpu.totalcpu | d(true) | bool | lower }}
+
+  ## If true, collect raw CPU time metrics.
+  collect_cpu_time = {{ monitor.telegraf.plugins.input.cpu.collect_cpu_time | d(false) | bool | lower }}
+
+  ## If true, compute and report the sum of all non-idle CPU states.
+  report_active = {{ monitor.telegraf.plugins.input.cpu.report_active | d(false) | bool | lower }}
+  {% if monitor.telegraf.plugins.input.cpu.interval is defined %}
+
+  ## Data collection interval
+  interval = "{{ monitor.telegraf.plugins.input.cpu.interval }}"
+  {% endif %}

@@ -1,0 +1,17 @@
+{
+	"status": "disabled",
+	"vars": {
+		{% if not (task_item.skip_host | d(false) | bool) %}
+		"host": {
+			"type": "string",
+			"value": "{{ host_name }}"
+		}
+		{% endif %}
+		{% for item in (task_item.vars | d([], true)) %}
+		,"{{ item[0] }}": {
+			"type": "{{ item[1] }}",
+			"value": "{{ item[2] }}"
+		}
+		{% endfor %}
+	}
+}

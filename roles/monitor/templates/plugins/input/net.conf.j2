@@ -1,0 +1,26 @@
+# # Read metrics about network interface usage
+[[inputs.net]]
+  ## By default, telegraf gathers stats from any up interface (excluding loopback)
+  ## Setting interfaces will tell it to gather these explicit interfaces,
+  ## regardless of status.
+  ##
+  {% if monitor.telegraf.plugins.input.net.interfaces is defined %}
+  interfaces = [
+  {%- for item in monitor.telegraf.plugins.input.net.interfaces -%}
+  "{{ item }}",
+  {%- endfor -%}
+  ]
+  {% else %}
+  # interfaces = ["eth0"]
+  {% endif %}
+
+  ##
+  ## On linux systems telegraf also collects protocol stats.
+  ## Setting ignore_protocol_stats to true will skip reporting of protocol metrics.
+  ##
+  ignore_protocol_stats = true
+  {% if monitor.telegraf.plugins.input.net.interval is defined %}
+
+  ## Data collection interval
+  interval = "{{ monitor.telegraf.plugins.input.net.interval }}"
+  {% endif %}

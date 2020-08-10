@@ -1,0 +1,8 @@
+# Read metrics about memory usage
+[[inputs.mem]]
+  # no configuration
+  {% if monitor.telegraf.plugins.input.mem.interval is defined %}
+
+  ## Data collection interval
+  interval = "{{ monitor.telegraf.plugins.input.mem.interval }}"
+  {% endif %}

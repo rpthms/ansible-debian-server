@@ -1,0 +1,18 @@
+# Collect Wireguard server interface and peer statistics
+[[inputs.wireguard]]
+  ## Optional list of Wireguard device/interface names to query.
+  ## If omitted, all Wireguard interfaces are queried.
+  {% if monitor.telegraf.plugins.input.wireguard.devices is defined %}
+  devices = [
+  {%- for item in monitor.telegraf.plugins.input.wireguard.devices -%}
+  "{{ item }}",
+  {%- endfor -%}
+  ]
+  {% else %}
+  # devices = ["wg0"]
+  {% endif %}
+  {% if monitor.telegraf.plugins.input.wireguard.interval is defined %}
+
+  ## Data collection interval
+  interval = "{{ monitor.telegraf.plugins.input.wireguard.interval }}"
+  {% endif %}

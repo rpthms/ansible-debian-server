@@ -8,3 +8,5 @@ roles/user-config/*
 !roles/user-config/.gitkeep
 roles/certbot/files/*
 !roles/certbot/files/.gitkeep
+roles/monitor/files/exec-scripts/*
+!roles/monitor/files/exec-scripts/.gitkeep

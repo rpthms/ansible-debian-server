@@ -1,0 +1,41 @@
+# Query given DNS server and gives statistics
+[[inputs.dns_query]]
+  ## servers to query
+  {% if monitor.telegraf.plugins.input.dns_query.servers is defined %}
+  servers = [
+  {%- for item in monitor.telegraf.plugins.input.dns_query.servers -%}
+  "{{ item }}",
+  {%- endfor -%}
+  ]
+  {% else %}
+  # servers = ["8.8.8.8"]
+  {% endif %}
+
+  ## Network is the network protocol name.
+  # network = "udp"
+
+  ## Domains or subdomains to query.
+  {% if monitor.telegraf.plugins.input.dns_query.domains is defined %}
+  domains = [
+  {%- for item in monitor.telegraf.plugins.input.dns_query.domains -%}
+  "{{ item }}",
+  {%- endfor -%}
+  ]
+  {% else %}
+  # domains = ["."]
+  {% endif %}
+
+  ## Query record type.
+  ## Posible values: A, AAAA, CNAME, MX, NS, PTR, TXT, SOA, SPF, SRV.
+  record_type = "A"
+
+  ## Dns server port.
+  # port = 53
+
+  ## Query timeout in seconds.
+  timeout = {{ monitor.telegraf.plugins.input.dns_query.timeout | d(2) }}
+  {% if monitor.telegraf.plugins.input.dns_query.interval is defined %}
+
+  ## Data collection interval
+  interval = "{{ monitor.telegraf.plugins.input.dns_query.interval }}"
+  {% endif %}

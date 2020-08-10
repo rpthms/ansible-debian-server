@@ -1,0 +1,9 @@
+# Read metrics about system load & uptime
+[[inputs.system]]
+  ## Uncomment to remove deprecated metrics.
+  # fielddrop = ["uptime_format"]
+  {% if monitor.telegraf.plugins.input.system.interval is defined %}
+
+  ## Data collection interval
+  interval = "{{ monitor.telegraf.plugins.input.system.interval }}"
+  {% endif %}

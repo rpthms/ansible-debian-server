@@ -1,0 +1,8 @@
+# Get kernel statistics from /proc/stat
+[[inputs.kernel]]
+  # no configuration
+  {% if monitor.telegraf.plugins.input.kernel.interval is defined %}
+
+  ## Data collection interval
+  interval = "{{ monitor.telegraf.plugins.input.kernel.interval }}"
+  {% endif %}

@@ -1,0 +1,29 @@
+# Reads metrics from a SSL certificate
+[[inputs.x509_cert]]
+  ## List certificate sources
+  {% if monitor.telegraf.plugins.input.x509_cert.sources is defined %}
+  sources = [
+  {%- for item in monitor.telegraf.plugins.input.x509_cert.sources -%}
+  "{{ item }}",
+  {%- endfor -%}
+  ]
+  {% else %}
+  # sources = ["/etc/ssl/certs/ssl-cert-snakeoil.pem", "tcp://example.org:443"]
+  {% endif %}
+
+  ## Timeout for SSL connection
+  timeout = "{{ monitor.telegraf.plugins.input.x509_cert.timeout | d('5s') }}"
+
+  ## Pass a different name into the TLS request (Server Name Indication)
+  ##   example: server_name = "myhost.example.org"
+  # server_name = ""
+
+  ## Optional TLS Config
+  # tls_ca = "/etc/telegraf/ca.pem"
+  # tls_cert = "/etc/telegraf/cert.pem"
+  # tls_key = "/etc/telegraf/key.pem"
+  {% if monitor.telegraf.plugins.input.x509_cert.interval is defined %}
+
+  ## Data collection interval
+  interval = "{{ monitor.telegraf.plugins.input.x509_cert.interval }}"
+  {% endif %}

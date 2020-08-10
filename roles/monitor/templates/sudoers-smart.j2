@@ -1,0 +1,3 @@
+Cmnd_Alias SMARTCTL = {{ monitor.telegraf.plugins.input.smart.path | d('/usr/sbin/smartctl') }}
+telegraf ALL=(ALL) NOPASSWD: SMARTCTL
+Defaults!SMARTCTL !logfile, !syslog, !pam_session

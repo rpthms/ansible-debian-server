@@ -1,0 +1,90 @@
+---
+# Tasks to set up Kapacitor alerts
+
+- name: "Check if the Kapacitor task already exists"
+  uri:
+    url: "{{ monitor.kapacitor.url }}/kapacitor/v1/tasks/{{ host_name }}.{{ task_item.template }}{{ task_item.id_suffix | d('') }}"
+    url_username: "{{ monitor.kapacitor.username | d('') }}"
+    url_password: "{{ monitor.kapacitor.password | d('') }}"
+    status_code:
+      - 200
+      - 404
+  tags: "kapacitor-alerts"
+  register: task_search_result
+
+- name: "Create the Kapacitor task"
+  block:
+
+  - name: "Create the JSON file for the Kapacitor task creation"
+    local_action:
+      module: "template"
+      lstrip_blocks: true
+      src: "create_task.json.j2"
+      dest: "/tmp/ansible.{{ lookup('password','/dev/null chars=ascii_letters,digits length=15') }}"
+    changed_when: false
+    register: "task_creation_template"
+
+  - name: "Send the task creation request to the Kapacitor server"
+    uri:
+      url: "{{ monitor.kapacitor.url }}/kapacitor/v1/tasks"
+      url_username: "{{ monitor.kapacitor.username | d('') }}"
+      url_password: "{{ monitor.kapacitor.password | d('') }}"
+      force_basic_auth: true
+      method: POST
+      body_format: json
+      src: "{{ task_creation_template.dest }}"
+
+  - name: "Delete the JSON file"
+    local_action:
+      module: "file"
+      path: "{{ task_creation_template.dest }}"
+      state: absent
+    changed_when: false
+
+  when: task_search_result.status != 200
+  tags: "kapacitor-alerts"
+
+- name: "Patch the Kapacitor task"
+  block:
+
+  - name: "Create the JSON file for the Kapacitor task patch"
+    local_action:
+      module: "template"
+      lstrip_blocks: true
+      src: "create_task.json.j2"
+      dest: "/tmp/ansible.{{ lookup('password','/dev/null chars=ascii_letters,digits length=15') }}"
+    changed_when: false
+    register: "task_patch_template"
+
+  - name: "Send the task patch request to the Kapacitor server"
+    uri:
+      url: "{{ monitor.kapacitor.url }}/kapacitor/v1/tasks/{{ host_name }}.{{ task_item.template }}{{ task_item.id_suffix | d('') }}"
+      url_username: "{{ monitor.kapacitor.username | d('') }}"
+      url_password: "{{ monitor.kapacitor.password | d('') }}"
+      force_basic_auth: true
+      method: PATCH
+      body_format: json
+      src: "{{ task_patch_template.dest }}"
+
+  - name: "Reload the patched Kapacitor task"
+    uri:
+      url: "{{ monitor.kapacitor.url }}/kapacitor/v1/tasks/{{ host_name }}.{{ task_item.template }}{{ task_item.id_suffix | d('') }}"
+      url_username: "{{ monitor.kapacitor.username | d('') }}"
+      url_password: "{{ monitor.kapacitor.password | d('') }}"
+      force_basic_auth: true
+      method: PATCH
+      body_format: json
+      body: >-
+        {
+          "status": "enabled"
+        }
+
+  - name: "Delete the JSON file"
+    local_action:
+      module: "file"
+      path: "{{ task_patch_template.dest }}"
+      state: absent
+    changed_when: false
+
+  when: task_search_result.status == 200
+  tags: "kapacitor-alerts"

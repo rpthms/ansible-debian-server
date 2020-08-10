@@ -1,0 +1,21 @@
+# Read metrics about disk usage by mount point
+[[inputs.disk]]
+  ## By default stats will be gathered for all mount points.
+  ## Set mount_points will restrict the stats to only the specified mount points.
+  {% if monitor.telegraf.plugins.input.disk.mount_points is defined %}
+  mount_points = [
+  {%- for item in monitor.telegraf.plugins.input.disk.mount_points -%}
+  "{{ item }}",
+  {%- endfor -%}
+  ]
+  {% else %}
+  # mount_points = ["/"]
+  {% endif %}
+
+  ## Ignore mount points by filesystem type.
+  ignore_fs = ["tmpfs", "devtmpfs", "devfs", "iso9660", "overlay", "aufs", "squashfs"]
+  {% if monitor.telegraf.plugins.input.disk.interval is defined %}
+
+  ## Data collection interval
+  interval = "{{ monitor.telegraf.plugins.input.disk.interval }}"
+  {% endif %}

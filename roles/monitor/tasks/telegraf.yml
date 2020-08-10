@@ -1,0 +1,125 @@
+---
+# Set up Telegraf
+
+- name: "Install Telegraf"
+  apt:
+    name: "telegraf"
+    update_cache: yes
+    state: present
+  tags: "telegraf"
+
+- name: "Copy Telegraf's config file"
+  copy:
+    src: "telegraf.conf"
+    dest: "/etc/telegraf/telegraf.conf"
+    owner: "telegraf"
+    group: "sudo"
+    mode: 0440
+  tags: "telegraf"
+  notify:
+    - "Restart Telegraf"
+
+- name: "Ensure /etc/telegraf/telegraf.d exists"
+  file:
+    path: "/etc/telegraf/telegraf.d"
+    state: directory
+    owner: "telegraf"
+    group: "sudo"
+    mode: 0550
+  tags: "telegraf"
+
+- name: "Copy config for Telegraf's InfluxDB output plugin"
+  template:
+    src: "plugins/output/influxdb.conf.j2"
+    dest: "/etc/telegraf/telegraf.d/output-influxdb.conf"
+    lstrip_blocks: yes
+    owner: "telegraf"
+    group: "sudo"
+    mode: 0440
+  tags: "telegraf"
+  notify:
+    - "Restart Telegraf"
+
+- name: "Copy configs for Telegraf input plugins"
+  template:
+    src: "plugins/input/{{ item.key }}.conf.j2"
+    dest: "/etc/telegraf/telegraf.d/input-{{ item.key }}.conf"
+    lstrip_blocks: yes
+    owner: "telegraf"
+    group: "sudo"
+    mode: 0440
+  loop: "{{ monitor.telegraf.plugins.input | dict2items }}"
+  tags: "telegraf"
+  notify:
+    - "Restart Telegraf"
+
+- name: "Create Telegraf's systemd config override directory"
+  file:
+    path: "/etc/systemd/system/telegraf.service.d"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  tags: "telegraf"
+
+- name: "Enable CAP_NET_ADMIN for Telegraf if we're using the WireGuard plugin"
+  copy:
+    src: "systemd-wireguard.conf"
+    dest: "/etc/systemd/system/telegraf.service.d/wireguard.conf"
+    owner: root
+    group: root
+    mode: 0644
+  when: monitor.telegraf.plugins.input.wireguard is defined
+  tags: "telegraf"
+  notify:
+    - "Restart Telegraf"
+
+- name: "SMART setup for Telegraf"
+  block:
+
+  - name: "Install smartmontools"
+    apt: {name: "smartmontools", state: present}
+
+  - name: "Add a sudoers file if we're using the SMART plugin"
+    template:
+      src: "sudoers-smart.j2"
+      dest: "/etc/sudoers.d/smart"
+      owner: root
+      group: root
+      mode: 0400
+    notify:
+      - "Restart Telegraf"
+
+  - name: "Enable CAP_SETUID and CAP_SETGID for Telegraf if we're using the SMART plugin"
+    copy:
+      src: "systemd-smart.conf"
+      dest: "/etc/systemd/system/telegraf.service.d/smart.conf"
+      owner: root
+      group: root
+      mode: 0644
+    notify:
+      - "Restart Telegraf"
+
+  when: monitor.telegraf.plugins.input.smart is defined
+  tags: "telegraf"
+
+- name: "Copy the exec-scripts if we're using the exec plugin"
+  copy:
+    src: "{{ item }}"
+    dest: "/usr/local/bin"
+    owner: "telegraf"
+    group: "sudo"
+    mode: 0550
+  with_fileglob:
+    - "exec-scripts/*"
+  when: monitor.telegraf.plugins.input.exec is defined
+  tags: "telegraf"
+
+- name: "Enable and start the Telegraf service"
+  systemd:
+    name: "telegraf"
+    daemon_reload: yes
+    enabled: yes
+    state: started
+  tags: "telegraf"
+...
