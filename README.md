@@ -18,7 +18,7 @@ This playbook currently includes the following roles:
 - znc: Setup an IRC bounder via ZNC
 - wireguard: Setup a WireGuard VPN server
 - certbot: Generate a TLS cert for the given hostname. Only uses the DNS-01 challenege for domain verification.
-- influxdb: Set up a time series database use InfluxDB
+- influxdb: Set up a time series database using InfluxDB
 - kapacitor: Set up data processing and alert generation using Kapacitor. Kapacitor gets its data from an InfluxDB server.
 - monitor: Set up Telegraf to gather data from a host and send it to an InfluxDB server and set up alerting tasks on a remote Kapacitor server.
 - grafana: Set up a Grafana server to create dashboards and view the time series data stored on an InfluxDB server
