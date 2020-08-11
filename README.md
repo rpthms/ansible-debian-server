@@ -4,24 +4,24 @@ Ansible Playbook to deploy a Debian Server
 This playbook was initially created to easily set up a VPN server within minutes. I've added a few more roles to this playbook since then. You can modify your site.yml file and select the roles which suit your needs.
 
 This playbook currently includes the following roles:
-- apt: Install core packages
-- system-config: Set up core config files in /etc
-- networking: Configure systemd-networkd and enabling IP forwarding
-- nftables: Set up a basic nftables ruleset and allow other roles to create firewall rules.
-- unattended-upgrades: Automate security upgrades
-- postfix: Set up a send-only Postfix SMTP server to receive notifications from the server
-- openvpn: Set up the OpenVPN server and configure firewall rules
-- rsyslog: Set up a remote syslog server
-- user-config: Local user configurations. This role has beek kept empty for you to fill it with your user configurations. 
-- nginx: Setup an HTTPS server block for a given hostname. This role will call the certbot role to generate a TLS cert.
-- nginx-base: Setup a default HTTP and HTTPS server using the server's FQDN. This role should NEVER be called. Use the nginx role instead.
-- znc: Setup an IRC bounder via ZNC
-- wireguard: Setup a WireGuard VPN server
-- certbot: Generate a TLS cert for the given hostname. Only uses the DNS-01 challenege for domain verification.
-- influxdb: Set up a time series database using InfluxDB
-- kapacitor: Set up data processing and alert generation using Kapacitor. Kapacitor gets its data from an InfluxDB server.
-- monitor: Set up Telegraf to gather data from a host and send it to an InfluxDB server and set up alerting tasks on a remote Kapacitor server.
-- grafana: Set up a Grafana server to create dashboards and view the time series data stored on an InfluxDB server
+- **apt**: Install core packages
+- **system-config**: Set up core config files in /etc
+- **networking**: Configure systemd-networkd and enabling IP forwarding
+- **nftables**: Set up a basic nftables ruleset and allow other roles to create firewall rules.
+- **unattended-upgrades**: Automate security upgrades
+- **postfix**: Set up a send-only Postfix SMTP server to receive notifications from the server
+- **openvpn**: Set up the OpenVPN server and configure firewall rules
+- **rsyslog**: Set up a remote syslog server
+- **user-config**: Local user configurations. This role has beek kept empty for you to fill it with your user configurations.
+- **nginx**: Setup an HTTPS server block for a given hostname. This role will call the certbot role to generate a TLS cert.
+- **nginx-base**: Setup a default HTTP and HTTPS server using the server's FQDN. This role should NEVER be called. Use the nginx role instead.
+- **znc**: Setup an IRC bounder via ZNC
+- **wireguard**: Setup a WireGuard VPN server
+- **certbot**: Generate a TLS cert for the given hostname. Only uses the DNS-01 challenege for domain verification.
+- **influxdb**: Set up a time series database using InfluxDB
+- **kapacitor**: Set up data processing and alert generation using Kapacitor. Kapacitor gets its data from an InfluxDB server.
+- **monitor**: Set up Telegraf to gather data from a host and send it to an InfluxDB server and set up alerting tasks on a remote Kapacitor server.
+- **grafana**: Set up a Grafana server to create dashboards and view the time series data stored on an InfluxDB server
 
 # Configure the playbook
 Before you use this playbook, you'll need to do 2 things
@@ -45,7 +45,7 @@ All these files can be easily generated using [EasyRSA](https://github.com/OpenV
 1. Make sure your SSH public key has been deployed to the root account as the playbook is using root as the `remote_user`. If you'd rather SSH into your own account and use sudo to run the playbook, then you'll have to replace `remote_user` with `become_user` in site.yml
 2. Make sure **python-netaddr** is installed on your system, as some of the roles in this playbook use the `ipaddr` filter which needs that package.
 3. Edit the inventory (`/etc/ansible/hosts` or a custom inventory file) to add your Debian server's IP or hostname
-4. Change the hosts entry in `site.yml` to your Debian server's IP or hostname 
+4. Change the hosts entry in `site.yml` to your Debian server's IP or hostname
 5. Modify the list of roles provided in `site.yml` according to your requirements.
 6. Run the playbook using `ansible-playbook site.yml`
 
